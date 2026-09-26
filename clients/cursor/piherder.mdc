@@ -1,0 +1,6 @@
+---
+description: Operate a PiHerder fleet through the piherder MCP tools
+alwaysApply: false
+---
+
+Call summary before changing a host. trigger_job accepts only backup, retention, os_patch, container_patch, os_update_check, and container_update_check. When the result status is 409, poll get_job for that job and do not start another. Files stay inside the fleet jail: list, read, write, mkdir, rename, and delete of a file or an empty directory. Do not invent SSH, a console, Move, undo, or a compose action. A token without jobs, edit, or files has no tool for that scope. Feature flags and feature:* scopes are enforced by PiHerder.

@@ -1,0 +1,4 @@
+[mcp_servers.piherder]
+command = "uvx"
+args = ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
+env = { PIHERDER_URL = "https://piherder.example.com", PIHERDER_TOKEN = "${PIHERDER_TOKEN}" }
