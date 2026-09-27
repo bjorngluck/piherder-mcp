@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "piherder": {
-      "command": "uvx",
-      "args": ["piherder-mcp"],
+      "command": "cmd",
+      "args": ["/c", "uvx", "piherder-mcp"],
       "env": {
         "PIHERDER_URL": "https://piherder.example.com",
         "PIHERDER_TOKEN": "ph_…"

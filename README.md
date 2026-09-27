@@ -1,37 +1,80 @@
+<!-- mcp-name: io.github.bjorngluck/piherder-mcp -->
+
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.1.0-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.0)
+[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1)
+[![PyPI](https://img.shields.io/badge/PyPI-piherder--mcp-blue.svg)](https://pypi.org/project/piherder-mcp/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.7%20train-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/docs/PLAN_v1.7.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%231EAEDB?logo=githubsponsors&logoColor=fff&style=flat)](https://github.com/sponsors/bjorngluck)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-ffdd00?logo=buymeacoffee&logoColor=black&style=flat)](https://www.buymeacoffee.com/bjorngluck)
 
-stdio process that lets Cursor, Grok Build, Claude, and Codex call a [PiHerder](https://github.com/bjorngluck/piherder) instance through the existing bearer API.
+stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and other MCP clients call a [PiHerder](https://github.com/bjorngluck/piherder) instance through the existing bearer API.
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image, and the herder does not open an MCP port. The public demo is not a target.
 
-**Adapter 0.1.0** (GitHub Release [`v0.1.0`](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.0)). It talks to the token API that shipped with PiHerder **1.6.0**. The contract for this cut is the **v1.7** train.
+**Adapter 0.1.1** talks to the token API that shipped with PiHerder **1.6.0**. The contract for this cut is the **v1.7** train. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)).
 
 ## Install
 
-Full steps, client samples, and what each scope can do: **[Agents (MCP)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)**.
-
-The public docs site ([piherder-docs.hacknow.info](https://piherder-docs.hacknow.info/)) is built from PiHerder `main`. That site’s Agents page is published when v1.7 merges. Until then, use the wiki file on `v1.7.0-dev` linked above.
-
-The package is not on PyPI yet. Launch it from git:
+Full steps and scope notes: **[Agents (MCP)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)**.
 
 ```bash
 export PIHERDER_URL='https://piherder.example.com'
 export PIHERDER_TOKEN='ph_…'
+uvx piherder-mcp
+```
+
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). After the first PyPI release, that is the whole install story.
+
+Git fallback (pre-PyPI, or to pin a branch/commit):
+
+```bash
 uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp
 ```
 
-After a PyPI release the same program is `uvx piherder-mcp`.
+### Auth and tokens
 
-1. In PiHerder: Settings → **API management**. Token page: [API tokens](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/api-tokens.md).
+1. In PiHerder: **Settings → API management** (mint a token). Prefer an **MCP preset** when that lands on the token page. Details: [API tokens](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/api-tokens.md).
 2. `read` is required. `jobs`, `edit`, and `files` add the write tools. A token without `read` exits on stderr.
-3. Put `PIHERDER_URL` and `PIHERDER_TOKEN` in the client config. Samples are in `clients/`. Do not commit the token.
+3. Set `PIHERDER_URL` and `PIHERDER_TOKEN` for the MCP process.
+
+**`${PIHERDER_TOKEN}` often does not expand** inside client JSON `env` blocks. Many clients pass that string literally. Prefer one of:
+
+- Export `PIHERDER_TOKEN` in the host environment and omit it from the client `env` object (if the client inherits the parent env), or
+- Use the client's secret / env UI when it has one, or
+- Paste the token once into the client config and keep that file out of git.
+
+Samples in `clients/` use a `ph_…` placeholder — replace it, or remove the key and rely on the host env. Do not commit real tokens.
+
+## Clients
+
+Samples: [`clients/`](clients/) (Cursor, Claude Desktop, Codex, Grok, Windsurf, Continue, Goose, Windows `cmd /c`). Path notes: [`clients/README.md`](clients/README.md).
+
+Claude Desktop config locations:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+Minimal Cursor / Claude-shaped entry:
+
+```json
+{
+  "mcpServers": {
+    "piherder": {
+      "command": "uvx",
+      "args": ["piherder-mcp"],
+      "env": {
+        "PIHERDER_URL": "https://piherder.example.com",
+        "PIHERDER_TOKEN": "ph_…"
+      }
+    }
+  }
+}
+```
+
+The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor/piherder.mdc` (Cursor), `CLAUDE.md`, and `AGENTS.md`.
 
 ## Tools
 
@@ -46,12 +89,6 @@ After a PyPI release the same program is `uvx piherder-mcp`.
 
 SSH, the console, Move, undo, compose stack actions, and token admin are not tools.
 
-## Clients
-
-Samples live in `clients/`. They use `${PIHERDER_TOKEN}` so the secret stays out of git. Grok Build also loads a Cursor `.cursor/mcp.json` when Cursor MCP import is on. Codex needs `clients/codex/config.toml`.
-
-The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor/piherder.mdc` (Cursor), `CLAUDE.md`, and `AGENTS.md`.
-
 ## Wiki
 
 | Topic | Page |
@@ -64,6 +101,25 @@ The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor
 
 Do not vendor this tree inside the PiHerder Docker image.
 
+## Publishing (maintainers)
+
+First PyPI upload needs a one-time Trusted Publisher click — automation cannot finish that alone.
+
+1. Confirm `pyproject.toml` / `server.json` / `__version__` match the release.
+2. Create a GitHub Environment named **`pypi`** (Settings → Environments). Optional: require a reviewer.
+3. On [PyPI publishing](https://pypi.org/manage/account/publishing/), add a **pending** trusted publisher:
+   - Project name: `piherder-mcp`
+   - Owner: `bjorngluck`
+   - Repository: `piherder-mcp`
+   - Workflow filename: `release.yml`
+   - Environment name: `pypi`
+4. Tag and push: `git tag v0.1.1 && git push origin v0.1.1`.
+5. Confirm the Release has wheel/sdist assets and [PyPI](https://pypi.org/project/piherder-mcp/) shows the version.
+6. Optional: publish [`server.json`](server.json) to the MCP registry; keep the README `<!-- mcp-name: … -->` marker in sync.
+7. Suggested GitHub topics: `mcp`, `model-context-protocol`, `piherder`, `python`, `stdio`, `uvx`.
+
+See [CHANGELOG.md](CHANGELOG.md). Workflow comments in [`.github/workflows/release.yml`](.github/workflows/release.yml) repeat the Trusted Publisher fields.
+
 ## Tests
 
 ```bash
@@ -71,7 +127,7 @@ pip install -e ".[dev]"
 pytest -q
 ```
 
-Tests mock HTTP. They do not call a live herder.
+Tests mock HTTP. They do not call a live herder. CI runs Python 3.10–3.12.
 
 ## Support
 

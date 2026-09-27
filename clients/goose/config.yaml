@@ -1,0 +1,16 @@
+# Goose: merge under extensions in ~/.config/goose/config.yaml
+# Prefer env_keys for the secret so Goose pulls PIHERDER_TOKEN from its secret store / host env.
+# Git fallback args: ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
+extensions:
+  piherder:
+    enabled: true
+    type: stdio
+    name: piherder
+    cmd: uvx
+    args:
+      - piherder-mcp
+    envs:
+      PIHERDER_URL: https://piherder.example.com
+    env_keys:
+      - PIHERDER_TOKEN
+    timeout: 300

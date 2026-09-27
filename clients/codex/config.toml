@@ -1,4 +1,7 @@
+# Codex MCP: merge into your Codex config.toml
+# Token: paste carefully, or set PIHERDER_TOKEN in the host env if Codex inherits it.
+# Git fallback args: ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
 [mcp_servers.piherder]
 command = "uvx"
-args = ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
-env = { PIHERDER_URL = "https://piherder.example.com", PIHERDER_TOKEN = "${PIHERDER_TOKEN}" }
+args = ["piherder-mcp"]
+env = { PIHERDER_URL = "https://piherder.example.com", PIHERDER_TOKEN = "ph_…" }
