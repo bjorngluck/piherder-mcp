@@ -13,6 +13,11 @@
 #   3. Push a version tag (e.g. git tag v0.1.1 && git push origin v0.1.1).
 #   4. Confirm the `publish-pypi` job succeeds and https://pypi.org/project/piherder-mcp/
 #      shows the release. After first use the pending publisher becomes a normal publisher.
+#
+# github-release and publish-pypi both depend on `build`, then run independently.
+# A green GitHub Release is not proof the package is on PyPI. If the Trusted
+# Publisher is not configured yet, publish-pypi fails and the Release assets
+# can still be published.
 name: Release
 
 on:

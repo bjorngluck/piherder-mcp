@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Official-style `server.json` for MCP registry readiness.
 - Client samples for Windsurf, Continue, Goose, and Windows `cmd /c`.
 - Maintainer checklist for one-time PyPI Trusted Publisher setup.
+- Version alignment test so `__version__`, `server.json`, the changelog, and the Continue sample cannot drift quietly.
 
 ### Changed
 

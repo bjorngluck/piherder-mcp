@@ -2,8 +2,8 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1)
-[![PyPI](https://img.shields.io/badge/PyPI-piherder--mcp-blue.svg)](https://pypi.org/project/piherder-mcp/)
+[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases)
+[![PyPI](https://img.shields.io/badge/PyPI-pending%20v0.1.1-lightgrey.svg)](#publishing-maintainers)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.7%20train-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/docs/PLAN_v1.7.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)
@@ -105,7 +105,11 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 First PyPI upload needs a one-time Trusted Publisher click — automation cannot finish that alone.
 
-1. Confirm `pyproject.toml` / `server.json` / `__version__` match the release.
+The Release badge links to the [releases index](https://github.com/bjorngluck/piherder-mcp/releases) so it does not 404 before the `v0.1.1` tag exists. The PyPI badge stays **pending** and links to this section until the project page exists. After the first upload, point that badge at `https://pypi.org/project/piherder-mcp/`.
+
+`github-release` and `publish-pypi` run independently after the build. A green GitHub Release is not proof the package is on PyPI — if Trusted Publisher is not set up yet, the PyPI job fails and the Release assets can still appear.
+
+1. Package version is `piherder_mcp.__version__`. `pyproject.toml` reads it. CI checks `server.json`, the Continue sample, the changelog heading, and the README adapter line.
 2. Create a GitHub Environment named **`pypi`** (Settings → Environments). Optional: require a reviewer.
 3. On [PyPI publishing](https://pypi.org/manage/account/publishing/), add a **pending** trusted publisher:
    - Project name: `piherder-mcp`
@@ -114,8 +118,8 @@ First PyPI upload needs a one-time Trusted Publisher click — automation cannot
    - Workflow filename: `release.yml`
    - Environment name: `pypi`
 4. Tag and push: `git tag v0.1.1 && git push origin v0.1.1`.
-5. Confirm the Release has wheel/sdist assets and [PyPI](https://pypi.org/project/piherder-mcp/) shows the version.
-6. Optional: publish [`server.json`](server.json) to the MCP registry; keep the README `<!-- mcp-name: … -->` marker in sync.
+5. Confirm the Release has wheel/sdist assets **and** the `publish-pypi` job succeeded. Then open `https://pypi.org/project/piherder-mcp/` and retarget the README PyPI badge.
+6. Optional: publish [`server.json`](server.json) to the MCP registry; keep the README `<!-- mcp-name: … -->` marker in sync with `server.json` `name` (the version test checks the marker).
 7. Suggested GitHub topics: `mcp`, `model-context-protocol`, `piherder`, `python`, `stdio`, `uvx`.
 
 See [CHANGELOG.md](CHANGELOG.md). Workflow comments in [`.github/workflows/release.yml`](.github/workflows/release.yml) repeat the Trusted Publisher fields.

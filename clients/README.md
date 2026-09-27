@@ -21,4 +21,6 @@ uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp
 | Goose | [`goose/config.yaml`](goose/config.yaml) | `~/.config/goose/config.yaml` (merge under `extensions`) |
 | Windows (`cmd`) | [`windows/mcp.json`](windows/mcp.json) | Same JSON shape as Cursor/Claude; wraps via `cmd /c` |
 
+`uvx` must be on the PATH of the Windows account that launches the client. `cmd /c` does not fix a missing PATH — non-interactive sessions often miss the user PATH from a terminal install of uv.
+
 Operator skill text (unchanged contract): [`../skills/piherder/SKILL.md`](../skills/piherder/SKILL.md), [`cursor/piherder.mdc`](cursor/piherder.mdc), [`../CLAUDE.md`](../CLAUDE.md), [`../AGENTS.md`](../AGENTS.md).
