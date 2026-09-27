@@ -1,10 +1,10 @@
 # Client samples
 
-Primary launch command after PyPI: `uvx piherder-mcp`.
+Primary launch command from [PyPI](https://pypi.org/project/piherder-mcp/): `uvx piherder-mcp`.
 
 All samples need `PIHERDER_URL` and `PIHERDER_TOKEN`. Most MCP clients do **not** expand `${PIHERDER_TOKEN}` inside JSON `env` blocks — set the token in the host environment, the client's secret UI, or paste it once carefully. Do not commit real tokens.
 
-Git fallback (before PyPI, or to pin a branch):
+Git fallback (pin a branch or commit):
 
 ```text
 uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp

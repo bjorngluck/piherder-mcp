@@ -37,6 +37,7 @@ dev = ["pytest>=8"]
 
 [project.urls]
 Homepage = "https://github.com/bjorngluck/piherder-mcp"
+PyPI = "https://pypi.org/project/piherder-mcp/"
 Repository = "https://github.com/bjorngluck/piherder-mcp"
 Issues = "https://github.com/bjorngluck/piherder-mcp/issues"
 Changelog = "https://github.com/bjorngluck/piherder-mcp/blob/main/CHANGELOG.md"
