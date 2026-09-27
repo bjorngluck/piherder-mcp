@@ -1,0 +1,15 @@
+# Continue: place under .continue/mcpServers/piherder.yaml
+# or merge the mcpServers list into ~/.continue/config.yaml
+# `version` below tracks the PiHerder MCP package (piherder_mcp.__version__).
+# tests/test_version.py fails if it drifts.
+name: PiHerder MCP
+version: 0.1.1
+schema: v1
+mcpServers:
+  - name: piherder
+    command: uvx
+    args:
+      - piherder-mcp
+    env:
+      PIHERDER_URL: https://piherder.example.com
+      PIHERDER_TOKEN: ph_…

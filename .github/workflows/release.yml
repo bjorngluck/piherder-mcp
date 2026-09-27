@@ -1,4 +1,23 @@
-# GitHub Release on v* tags. Tags alone do not show a Release page.
+# Build, GitHub Release assets, and PyPI publish on v* tags.
+# PyPI uses Trusted Publisher (OIDC) — no long-lived API token in the repo.
+#
+# One-time maintainer setup (required before the first successful PyPI upload):
+#   1. Create a GitHub Environment named `pypi` on this repo (Settings → Environments).
+#      Optional but recommended: require a reviewer on that environment.
+#   2. On https://pypi.org/manage/account/publishing/ add a **pending** trusted publisher:
+#        PyPI project name:  piherder-mcp
+#        Owner:              bjorngluck
+#        Repository:         piherder-mcp
+#        Workflow:           release.yml
+#        Environment:        pypi
+#   3. Push a version tag (e.g. git tag v0.1.1 && git push origin v0.1.1).
+#   4. Confirm the `publish-pypi` job succeeds and https://pypi.org/project/piherder-mcp/
+#      shows the release. After first use the pending publisher becomes a normal publisher.
+#
+# github-release and publish-pypi both depend on `build`, then run independently.
+# A green GitHub Release is not proof the package is on PyPI. If the Trusted
+# Publisher is not configured yet, publish-pypi fails and the Release assets
+# can still be published.
 name: Release
 
 on:
@@ -7,16 +26,45 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  github-release:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create GitHub Release
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tooling
+        run: pip install --upgrade build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Create GitHub Release with assets
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
@@ -24,3 +72,23 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+          files: |
+            dist/*
+
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/piherder-mcp/
+    permissions:
+      id-token: write
+    steps:
+      - name: Download dist artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

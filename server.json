@@ -1,0 +1,38 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.bjorngluck/piherder-mcp",
+  "title": "PiHerder",
+  "description": "stdio MCP adapter for the PiHerder token API — fleet summary, jobs, features, and jail files.",
+  "repository": {
+    "url": "https://github.com/bjorngluck/piherder-mcp",
+    "source": "github"
+  },
+  "version": "0.1.1",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "piherder-mcp",
+      "version": "0.1.1",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "PIHERDER_URL",
+          "description": "Base URL of your PiHerder instance (no trailing path).",
+          "isRequired": true,
+          "format": "string"
+        },
+        {
+          "name": "PIHERDER_TOKEN",
+          "description": "Bearer API token. Prefer host env or the client's secret UI; most clients do not expand ${PIHERDER_TOKEN} inside JSON.",
+          "isRequired": true,
+          "format": "string",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

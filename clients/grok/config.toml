@@ -1,4 +1,7 @@
+# Grok Build / Cursor-compatible MCP import
+# Token: paste carefully — ${PIHERDER_TOKEN} often does not expand in client env blocks.
+# Git fallback args: ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
 [mcp_servers.piherder]
 command = "uvx"
-args = ["--from", "git+https://github.com/bjorngluck/piherder-mcp.git", "piherder-mcp"]
-env = { PIHERDER_URL = "https://piherder.example.com", PIHERDER_TOKEN = "${PIHERDER_TOKEN}" }
+args = ["piherder-mcp"]
+env = { PIHERDER_URL = "https://piherder.example.com", PIHERDER_TOKEN = "ph_…" }
