@@ -2,8 +2,8 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases)
-[![PyPI](https://img.shields.io/badge/PyPI-pending%20v0.1.1-lightgrey.svg)](#publishing-maintainers)
+[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1)
+[![PyPI](https://img.shields.io/pypi/v/piherder-mcp)](https://pypi.org/project/piherder-mcp/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.7%20train-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/docs/PLAN_v1.7.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)
@@ -26,9 +26,9 @@ export PIHERDER_TOKEN='ph_…'
 uvx piherder-mcp
 ```
 
-Requires [uv](https://docs.astral.sh/uv/) (`uvx`). After the first PyPI release, that is the whole install story.
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/) (`piherder-mcp` 0.1.1).
 
-Git fallback (pre-PyPI, or to pin a branch/commit):
+Git fallback (pin a branch or commit):
 
 ```bash
 uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp
@@ -103,24 +103,15 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 ## Publishing (maintainers)
 
-First PyPI upload needs a one-time Trusted Publisher click — automation cannot finish that alone.
+[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/) is the first PyPI release. The PyPI badge links to that project page. The Release badge links to the [v0.1.1 GitHub Release](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1).
 
-The Release badge links to the [releases index](https://github.com/bjorngluck/piherder-mcp/releases) so it does not 404 before the `v0.1.1` tag exists. The PyPI badge stays **pending** and links to this section until the project page exists. After the first upload, point that badge at `https://pypi.org/project/piherder-mcp/`.
-
-`github-release` and `publish-pypi` run independently after the build. A green GitHub Release is not proof the package is on PyPI — if Trusted Publisher is not set up yet, the PyPI job fails and the Release assets can still appear.
+Trusted Publisher is already set: GitHub Environment `pypi`, workflow `release.yml`, owner `bjorngluck`, repository `piherder-mcp`. Later versions reuse it. `github-release` and `publish-pypi` still run independently after the build, so a green GitHub Release is not proof the package is on PyPI.
 
 1. Package version is `piherder_mcp.__version__`. `pyproject.toml` reads it. CI checks `server.json`, the Continue sample, the changelog heading, and the README adapter line.
-2. Create a GitHub Environment named **`pypi`** (Settings → Environments). Optional: require a reviewer.
-3. On [PyPI publishing](https://pypi.org/manage/account/publishing/), add a **pending** trusted publisher:
-   - Project name: `piherder-mcp`
-   - Owner: `bjorngluck`
-   - Repository: `piherder-mcp`
-   - Workflow filename: `release.yml`
-   - Environment name: `pypi`
-4. Tag and push: `git tag v0.1.1 && git push origin v0.1.1`.
-5. Confirm the Release has wheel/sdist assets **and** the `publish-pypi` job succeeded. Then open `https://pypi.org/project/piherder-mcp/` and retarget the README PyPI badge.
-6. Optional: publish [`server.json`](server.json) to the MCP registry; keep the README `<!-- mcp-name: … -->` marker in sync with `server.json` `name` (the version test checks the marker).
-7. Suggested GitHub topics: `mcp`, `model-context-protocol`, `piherder`, `python`, `stdio`, `uvx`.
+2. Tag the release commit and push the tag: `git tag -a vX.Y.Z <sha> -m "piherder-mcp X.Y.Z" && git push origin vX.Y.Z`.
+3. Confirm the Release has wheel and sdist assets **and** the `publish-pypi` job succeeded, then check [pypi.org/project/piherder-mcp](https://pypi.org/project/piherder-mcp/).
+4. Optional: publish [`server.json`](server.json) to the MCP registry; keep the README `<!-- mcp-name: … -->` marker in sync with `server.json` `name` (the version test checks the marker).
+5. Suggested GitHub topics: `mcp`, `model-context-protocol`, `piherder`, `python`, `stdio`, `uvx`.
 
 See [CHANGELOG.md](CHANGELOG.md). Workflow comments in [`.github/workflows/release.yml`](.github/workflows/release.yml) repeat the Trusted Publisher fields.
 

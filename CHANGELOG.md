@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - MCP tool semantics are unchanged.
-- `0.1.0` shipped as a GitHub Release only; `0.1.1` is the first intended PyPI upload.
+- `0.1.0` shipped as a GitHub Release only. `0.1.1` is the first PyPI release: https://pypi.org/project/piherder-mcp/
 
 ## [0.1.0] - 2026-09-26
 
