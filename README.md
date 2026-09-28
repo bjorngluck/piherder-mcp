@@ -4,21 +4,21 @@
 
 [![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1)
 [![PyPI](https://img.shields.io/pypi/v/piherder-mcp)](https://pypi.org/project/piherder-mcp/)
-[![PiHerder](https://img.shields.io/badge/PiHerder-v1.7%20train-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/docs/PLAN_v1.7.0.md)
+[![PiHerder](https://img.shields.io/badge/PiHerder-v1.7.0-blue.svg)](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
-[![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)
+[![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://piherder-docs.hacknow.info/operations/mcp/)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%231EAEDB?logo=githubsponsors&logoColor=fff&style=flat)](https://github.com/sponsors/bjorngluck)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-ffdd00?logo=buymeacoffee&logoColor=black&style=flat)](https://www.buymeacoffee.com/bjorngluck)
 
 stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and other MCP clients call a [PiHerder](https://github.com/bjorngluck/piherder) instance through the existing bearer API.
 
-It runs on the computer that runs the agent. It is not part of the PiHerder image, and the herder does not open an MCP port. The public demo is not a target.
+It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.7.0](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0)** also serves `POST /mcp` on the herder. This adapter is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.1.1** talks to the token API that shipped with PiHerder **1.6.0**. The contract for this cut is the **v1.7** train. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)).
+**Adapter 0.1.1** talks to the same bearer token API as PiHerder **1.7.0**. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Release notes: [PiHerder v1.7.0](https://github.com/bjorngluck/piherder/blob/v1.7.0/docs/RELEASE_v1.7.0.md).
 
 ## Install
 
-Full steps and scope notes: **[Agents (MCP)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md)**.
+Full steps and scope notes: **[Agents (MCP)](https://piherder-docs.hacknow.info/operations/mcp/)**.
 
 ```bash
 export PIHERDER_URL='https://piherder.example.com'
@@ -36,7 +36,7 @@ uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp
 
 ### Auth and tokens
 
-1. In PiHerder: **Settings → API management** (mint a token). Prefer an **MCP preset** when that lands on the token page. Details: [API tokens](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/api-tokens.md).
+1. In PiHerder **1.7.0**: **Settings → API management → Create new token → MCP agent**. Details: [API tokens](https://piherder-docs.hacknow.info/operations/api-tokens/).
 2. `read` is required. `jobs`, `edit`, and `files` add the write tools. A token without `read` exits on stderr.
 3. Set `PIHERDER_URL` and `PIHERDER_TOKEN` for the MCP process.
 
@@ -93,11 +93,11 @@ SSH, the console, Move, undo, compose stack actions, and token admin are not too
 
 | Topic | Page |
 |-------|------|
-| Install, clients, scopes | [Agents (MCP)](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md) |
-| Token scopes and allowlist | [API tokens](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/api-tokens.md) |
-| Jobs the token can start | [Jobs](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/day-to-day/jobs-audit-notifications.md) |
-| Fleet-jail files | [Host Files](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/day-to-day/host-files.md) |
-| Train contract | [PLAN v1.7.0](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/docs/PLAN_v1.7.0.md) |
+| PiHerder v1.7.0 | [Release](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0) · [notes](https://github.com/bjorngluck/piherder/blob/v1.7.0/docs/RELEASE_v1.7.0.md) |
+| Install, clients, scopes | [Agents (MCP)](https://piherder-docs.hacknow.info/operations/mcp/) |
+| Token scopes and allowlist | [API tokens](https://piherder-docs.hacknow.info/operations/api-tokens/) |
+| Jobs the token can start | [Jobs](https://piherder-docs.hacknow.info/day-to-day/jobs-audit-notifications/) |
+| Fleet-jail files | [Host Files](https://piherder-docs.hacknow.info/day-to-day/host-files/) |
 
 Do not vendor this tree inside the PiHerder Docker image.
 
@@ -132,4 +132,4 @@ Optional. Nothing here is required to install the adapter.
 &nbsp;
 [![Buy me a coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=%E2%98%95&slug=bjorngluck&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://www.buymeacoffee.com/bjorngluck)
 
-[github.com/sponsors/bjorngluck](https://github.com/sponsors/bjorngluck) · [buymeacoffee.com/bjorngluck](https://www.buymeacoffee.com/bjorngluck) · [Support the project](https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/support.md)
+[github.com/sponsors/bjorngluck](https://github.com/sponsors/bjorngluck) · [buymeacoffee.com/bjorngluck](https://www.buymeacoffee.com/bjorngluck) · [Support the project](https://piherder-docs.hacknow.info/support/)
