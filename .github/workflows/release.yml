@@ -1,4 +1,5 @@
 # Build, GitHub Release assets, and PyPI publish on v* tags.
+# Release body is docs/RELEASE_vX.Y.Z.md when that file is on the tag.
 # PyPI uses Trusted Publisher (OIDC) — no long-lived API token in the repo.
 #
 # One-time maintainer setup (required before the first successful PyPI upload):
@@ -58,6 +59,23 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve release notes file
+        id: notes
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="${TAG#v}"
+          CANDIDATE="docs/RELEASE_v${VER}.md"
+          if [ -f "$CANDIDATE" ]; then
+            echo "path=${CANDIDATE}" >> "$GITHUB_OUTPUT"
+            echo "Using ${CANDIDATE}"
+          else
+            echo "path=" >> "$GITHUB_OUTPUT"
+            echo "No ${CANDIDATE}; will generate notes from commits"
+          fi
+
       - name: Download dist artifacts
         uses: actions/download-artifact@v4
         with:
@@ -69,7 +87,8 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }} — PiHerder MCP
-          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.path }}
+          generate_release_notes: ${{ steps.notes.outputs.path == '' }}
           draft: false
           prerelease: false
           files: |

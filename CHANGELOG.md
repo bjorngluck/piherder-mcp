@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Notes
 
 - The herder jobs POST already accepted these types in PiHerder **1.7.0**. Hosted `POST /mcp` on the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md) uses the same list. This package is the air-gapped stdio client.
-- Tag `v0.2.0` to publish. `uvx piherder-mcp` stays on **0.1.1** until that tag is on PyPI.
+- Operator notes: [docs/RELEASE_v0.2.0.md](docs/RELEASE_v0.2.0.md). Package: https://pypi.org/project/piherder-mcp/0.2.0/
 
 ## [0.1.1] - 2026-09-27
 

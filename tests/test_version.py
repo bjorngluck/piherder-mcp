@@ -6,8 +6,27 @@ from importlib.metadata import version as dist_version
 from pathlib import Path
 
 import piherder_mcp
+from piherder_mcp.client import JOB_TYPES
 
 ROOT = Path(__file__).resolve().parents[1]
+TOOL_NAMES = (
+    "health",
+    "summary",
+    "list_servers",
+    "get_server",
+    "inventory",
+    "services",
+    "list_jobs",
+    "get_job",
+    "trigger_job",
+    "set_features",
+    "list_files",
+    "read_file",
+    "write_file",
+    "mkdir",
+    "rename_file",
+    "delete_file",
+)
 
 
 def test_version_sources_match():
@@ -22,8 +41,16 @@ def test_version_sources_match():
 
     readme = (ROOT / "README.md").read_text()
     assert f"<!-- mcp-name: {server['name']} -->" in readme
-    assert f"adapter-v{package_version}" in readme
+    assert "img.shields.io/github/v/release/bjorngluck/piherder-mcp" in readme
+    assert "img.shields.io/pypi/v/piherder-mcp" in readme
+    assert "img.shields.io/github/v/release/bjorngluck/piherder" in readme
+    assert "badge/adapter-v" not in readme
     assert f"**Adapter {package_version}**" in readme
+    notes = (ROOT / f"docs/RELEASE_v{package_version}.md").read_text()
+    for name in (*TOOL_NAMES, *JOB_TYPES):
+        needle = f"`{name}`"
+        assert needle in readme, name
+        assert needle in notes, name
 
     changelog = (ROOT / "CHANGELOG.md").read_text()
     assert f"## [{package_version}]" in changelog
