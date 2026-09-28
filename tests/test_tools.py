@@ -135,19 +135,38 @@ def test_trigger_job_returns_409_and_refuses_other_types():
             conflict = await client.call_tool(
                 "trigger_job", {"server_id": 4, "job_type": "backup"}
             )
+            reboot = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "docker_stack_restart",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
             refused = await client.call_tool(
                 "trigger_job", {"server_id": 4, "job_type": "service_migrate"}
             )
-            return accepted, conflict, refused
+            down = await client.call_tool(
+                "trigger_job", {"server_id": 4, "job_type": "docker_stack_down"}
+            )
+            return accepted, conflict, reboot, refused, down
 
-    accepted, conflict, refused = asyncio.run(run())
+    accepted, conflict, reboot, refused, down = asyncio.run(run())
     assert accepted.structured_content["job_type"] == "os_update_check"
     assert conflict.structured_content["status"] == 409
     assert conflict.is_error is False
+    assert reboot.structured_content["job_type"] == "docker_stack_restart"
     assert refused.is_error is True
+    assert down.is_error is True
     posted = [call for call in api.calls if call[0] == "trigger_job"]
     assert ("service_migrate" in str(posted)) is False
+    assert ("docker_stack_down" in str(posted)) is False
     assert posted[0][2] == {"job_type": "os_update_check"}
+    assert posted[1][2] == {"job_type": "backup"}
+    assert posted[2][2] == {
+        "job_type": "docker_stack_restart",
+        "source_filter": "/home/pi/docker/grafana",
+    }
 
 
 def test_set_features_omits_untouched_flags():

@@ -16,6 +16,14 @@ JOB_TYPES = (
     "container_patch",
     "os_update_check",
     "container_update_check",
+    "host_reboot",
+    "docker_stack_check",
+    "docker_stack_deploy",
+    "docker_stack_stop",
+    "docker_stack_start",
+    "docker_stack_restart",
+    "template_deploy",
+    "template_redeploy",
 )
 
 

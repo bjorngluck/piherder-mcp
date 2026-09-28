@@ -19,6 +19,14 @@ JobType = Literal[
     "container_patch",
     "os_update_check",
     "container_update_check",
+    "host_reboot",
+    "docker_stack_check",
+    "docker_stack_deploy",
+    "docker_stack_stop",
+    "docker_stack_start",
+    "docker_stack_restart",
+    "template_deploy",
+    "template_redeploy",
 ]
 
 _READ = ToolAnnotations(read_only_hint=True, open_world_hint=True)
@@ -126,9 +134,9 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             source_filter: str | None = None,
             os_steps: list[str] | None = None,
         ) -> dict[str, Any]:
-            """Start one of backup, retention, os_patch, container_patch, os_update_check, container_update_check.
+            """Start backup, retention, os_patch, container_patch, os_update_check, container_update_check, host_reboot, docker_stack_check, docker_stack_deploy, docker_stack_stop, docker_stack_start, docker_stack_restart, template_deploy, or template_redeploy.
 
-            HTTP 202 means accepted. HTTP 409 means that job is already active: poll get_job and do not start another.
+            For a docker_stack job, source_filter is the compose project path. HTTP 202 means accepted. HTTP 409 means that job is already active: poll get_job and do not start another.
             """
             if job_type not in JOB_TYPES:
                 raise ValueError(f"job_type must be one of {', '.join(JOB_TYPES)}")
