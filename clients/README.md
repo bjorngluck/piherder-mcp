@@ -23,4 +23,4 @@ uvx --from git+https://github.com/bjorngluck/piherder-mcp.git piherder-mcp
 
 `uvx` must be on the PATH of the Windows account that launches the client. `cmd /c` does not fix a missing PATH — non-interactive sessions often miss the user PATH from a terminal install of uv.
 
-Operator skill text (unchanged contract): [`../skills/piherder/SKILL.md`](../skills/piherder/SKILL.md), [`cursor/piherder.mdc`](cursor/piherder.mdc), [`../CLAUDE.md`](../CLAUDE.md), [`../AGENTS.md`](../AGENTS.md).
+Operator skill text (0.2.0 job list): [`../skills/piherder/SKILL.md`](../skills/piherder/SKILL.md), [`cursor/piherder.mdc`](cursor/piherder.mdc), [`../CLAUDE.md`](../CLAUDE.md), [`../AGENTS.md`](../AGENTS.md).

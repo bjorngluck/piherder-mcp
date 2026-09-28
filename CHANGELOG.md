@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-09-28
+
+### Changed
+
+- `trigger_job` accepts the jobs POST types: `backup`, `retention`, `os_patch`, `container_patch`, `os_update_check`, `container_update_check`, `host_reboot`, `docker_stack_check`, `docker_stack_deploy`, `docker_stack_stop`, `docker_stack_start`, `docker_stack_restart`, `template_deploy`, and `template_redeploy`.
+- For a `docker_stack_*` job, `source_filter` is the compose project path.
+- Still refused: Move, undo, nmap, `docker_stack_down`, `docker_stack_remove`, and `template_drift_check`.
+
+### Notes
+
+- The herder jobs POST already accepted these types in PiHerder **1.7.0**. Hosted `POST /mcp` on the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md) uses the same list. This package is the air-gapped stdio client.
+- Tag `v0.2.0` to publish. `uvx piherder-mcp` stays on **0.1.1** until that tag is on PyPI.
+
 ## [0.1.1] - 2026-09-27
 
 ### Added

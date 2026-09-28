@@ -2,7 +2,7 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.1.1-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1)
+[![Release](https://img.shields.io/badge/adapter-v0.2.0-green.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.2.0)
 [![PyPI](https://img.shields.io/pypi/v/piherder-mcp)](https://pypi.org/project/piherder-mcp/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.7.0-blue.svg)](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
@@ -14,7 +14,7 @@ stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and ot
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.7.0](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0)** also serves `POST /mcp` on the herder. This adapter is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.1.1** talks to the same bearer token API as PiHerder **1.7.0**. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Release notes: [PiHerder v1.7.0](https://github.com/bjorngluck/piherder/blob/v1.7.0/docs/RELEASE_v1.7.0.md).
+**Adapter 0.2.0** calls the PiHerder **1.7.0** bearer API, including the wider `trigger_job` list. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.7.0](https://github.com/bjorngluck/piherder/blob/v1.7.0/docs/RELEASE_v1.7.0.md). The matching hosted tool list is the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md). Adapter notes: [CHANGELOG.md](CHANGELOG.md).
 
 ## Install
 
@@ -26,7 +26,7 @@ export PIHERDER_TOKEN='ph_…'
 uvx piherder-mcp
 ```
 
-Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/) (`piherder-mcp` 0.1.1).
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release. **0.2.0** is on PyPI after the `v0.2.0` tag. Until then, pin the git commit.
 
 Git fallback (pin a branch or commit):
 
@@ -94,6 +94,7 @@ SSH, the console, Move, undo, nmap, and token admin are not tools. `docker_stack
 | Topic | Page |
 |-------|------|
 | PiHerder v1.7.0 | [Release](https://github.com/bjorngluck/piherder/releases/tag/v1.7.0) · [notes](https://github.com/bjorngluck/piherder/blob/v1.7.0/docs/RELEASE_v1.7.0.md) |
+| Adapter 0.2.0 | [Changelog](CHANGELOG.md) · [v0.2.0 tag](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.2.0) · [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md) |
 | Install, clients, scopes | [Agents (MCP)](https://piherder-docs.hacknow.info/operations/mcp/) |
 | Token scopes and allowlist | [API tokens](https://piherder-docs.hacknow.info/operations/api-tokens/) |
 | Jobs the token can start | [Jobs](https://piherder-docs.hacknow.info/day-to-day/jobs-audit-notifications/) |
@@ -103,7 +104,7 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 ## Publishing (maintainers)
 
-[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/) is the first PyPI release. The PyPI badge links to that project page. The Release badge links to the [v0.1.1 GitHub Release](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.1.1).
+[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **0.2.0** publishes when you push the [v0.2.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.2.0) tag. The PyPI badge links to the [project page](https://pypi.org/project/piherder-mcp/). The Release badge links to that tag.
 
 Trusted Publisher is already set: GitHub Environment `pypi`, workflow `release.yml`, owner `bjorngluck`, repository `piherder-mcp`. Later versions reuse it. `github-release` and `publish-pypi` still run independently after the build, so a green GitHub Release is not proof the package is on PyPI.
 

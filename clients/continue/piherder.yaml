@@ -3,7 +3,7 @@
 # `version` below tracks the PiHerder MCP package (piherder_mcp.__version__).
 # tests/test_version.py fails if it drifts.
 name: PiHerder MCP
-version: 0.1.1
+version: 0.2.0
 schema: v1
 mcpServers:
   - name: piherder
