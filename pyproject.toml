@@ -41,7 +41,7 @@ PyPI = "https://pypi.org/project/piherder-mcp/"
 Repository = "https://github.com/bjorngluck/piherder-mcp"
 Issues = "https://github.com/bjorngluck/piherder-mcp/issues"
 Changelog = "https://github.com/bjorngluck/piherder-mcp/blob/main/CHANGELOG.md"
-Documentation = "https://github.com/bjorngluck/piherder/blob/v1.7.0-dev/wiki/operations/mcp.md"
+Documentation = "https://piherder-docs.hacknow.info/operations/mcp/"
 "PiHerder" = "https://github.com/bjorngluck/piherder"
 
 [project.scripts]
