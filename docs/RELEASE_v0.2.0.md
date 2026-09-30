@@ -2,7 +2,7 @@
 
 **28 September 2026.** Tag **[v0.2.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.2.0)**. Package **0.2.0** on [PyPI](https://pypi.org/project/piherder-mcp/0.2.0/).
 
-`trigger_job` now accepts the same job types as the PiHerder **1.7.0** jobs POST. Hosted `POST /mcp` on the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md) uses that same list. This package is the air-gapped stdio client. A Cursor or Grok connector that already points at hosted `/mcp` does not install it.
+`trigger_job` accepts the same fourteen job types as hosted `POST /mcp` on the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md). That list matches the PiHerder **1.7.0** jobs POST. The v1.8 jobs POST also has four one-service types for Home Assistant plugin **0.4.3** (`container_start`, `container_stop`, `container_restart`, `container_redeploy`). This package does not send them. A later train may discover that. This package is the air-gapped stdio client. A Cursor or Grok connector that already points at hosted `/mcp` does not install it.
 
 Install: `uvx piherder-mcp`.
 
@@ -58,4 +58,4 @@ A missing scope hides that group. A token without `read` lists nothing.
 | `template_deploy` | docker | On this list because the jobs POST accepts it. This call has no template slug or variable values, so a catalog deploy still starts from the template UI. |
 | `template_redeploy` | docker | Same as `template_deploy`. |
 
-Not accepted: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), and undo (`service_migrate_undo`). SSH, the console, nmap, and token admin are not tools.
+Not accepted: `container_start`, `container_stop`, `container_restart`, `container_redeploy` (Home Assistant plugin **0.4.3** only), `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), and undo (`service_migrate_undo`). SSH, the console, nmap, and token admin are not tools. Adapter **0.2.0** does not send the four one-service jobs.

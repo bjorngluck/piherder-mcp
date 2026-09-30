@@ -122,7 +122,7 @@ Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `write_file`, `mkd
 | `template_deploy` | docker | On this list because the jobs POST accepts it. This call has no template slug or variable values, so a catalog deploy still starts from the template UI. |
 | `template_redeploy` | docker | Same as `template_deploy`. |
 
-Not accepted: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), and undo (`service_migrate_undo`). SSH, the console, nmap, and token admin are not tools.
+Not accepted: `container_start`, `container_stop`, `container_restart`, `container_redeploy` (Home Assistant plugin **0.4.3** only), `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), and undo (`service_migrate_undo`). SSH, the console, nmap, and token admin are not tools. The next PiHerder release will discover whether those four one-service jobs join this list. Adapter **0.2.0** does not send them.
 
 ## Wiki
 
