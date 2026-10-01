@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
-- The herder jobs POST already accepted these fourteen types in PiHerder **1.7.0**. Hosted `POST /mcp` on the [v1.8.0 train](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/PLAN_v1.8.0.md) uses the same list. The v1.8 jobs POST also has four one-service types for Home Assistant plugin **0.4.3**. This package does not send them. This package is the air-gapped stdio client.
+- The herder jobs POST already accepted these fourteen types in PiHerder **1.7.0**. Hosted `POST /mcp` on PiHerder **[v1.8.0](https://github.com/bjorngluck/piherder/blob/v1.8.0-dev/docs/RELEASE_v1.8.0.md)** uses the same list. The v1.8 jobs POST also has four one-service types for Home Assistant plugin **0.4.3**. This package does not send them. This package is the air-gapped stdio client.
 - Operator notes: [docs/RELEASE_v0.2.0.md](docs/RELEASE_v0.2.0.md). Package: https://pypi.org/project/piherder-mcp/0.2.0/
 
 ## [0.1.1] - 2026-09-27
