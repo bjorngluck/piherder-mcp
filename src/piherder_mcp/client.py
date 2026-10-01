@@ -9,6 +9,14 @@ import httpx2
 
 MAX_FILE_BYTES = 256 * 1024
 
+# One compose service. Both service and source_filter are required.
+SERVICE_JOB_TYPES = (
+    "container_start",
+    "container_stop",
+    "container_restart",
+    "container_redeploy",
+)
+
 JOB_TYPES = (
     "backup",
     "retention",
@@ -24,6 +32,7 @@ JOB_TYPES = (
     "docker_stack_restart",
     "template_deploy",
     "template_redeploy",
+    *SERVICE_JOB_TYPES,
 )
 
 

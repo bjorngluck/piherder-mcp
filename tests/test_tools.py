@@ -169,6 +169,122 @@ def test_trigger_job_returns_409_and_refuses_other_types():
     }
 
 
+def test_trigger_job_schema_includes_service():
+    _api, listed = _tools({"read", "jobs"})
+    by_name = {tool.name: tool for tool in listed}
+    schema = by_name["trigger_job"].input_schema
+    service = schema["properties"]["service"]
+    assert "string" in str(service)
+    assert "container_start" in service["description"]
+    assert "Required" in service["description"]
+    enum = schema["properties"]["job_type"].get("enum")
+    assert enum is not None
+    for name in (
+        "container_start",
+        "container_stop",
+        "container_restart",
+        "container_redeploy",
+    ):
+        assert name in enum
+    assert "server_id" in schema["required"]
+    assert "job_type" in schema["required"]
+
+
+def test_container_service_jobs_require_service_and_source_filter():
+    from mcp import Client
+
+    api = Recording()
+    server = build_server(api, {"read", "jobs"})
+
+    async def run():
+        async with Client(server) as client:
+            started = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_start",
+                    "service": " grafana ",
+                    "source_filter": " /home/pi/docker/grafana ",
+                },
+            )
+            stopped = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_stop",
+                    "service": "grafana",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
+            restarted = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_restart",
+                    "service": "grafana",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
+            updated = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_redeploy",
+                    "service": "grafana",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
+            missing_service = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_restart",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
+            missing_path = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_redeploy",
+                    "service": "grafana",
+                },
+            )
+            blank = await client.call_tool(
+                "trigger_job",
+                {
+                    "server_id": 4,
+                    "job_type": "container_stop",
+                    "service": "  ",
+                    "source_filter": "/home/pi/docker/grafana",
+                },
+            )
+            return started, stopped, restarted, updated, missing_service, missing_path, blank
+
+    started, stopped, restarted, updated, missing_service, missing_path, blank = asyncio.run(run())
+    assert started.structured_content["job_type"] == "container_start"
+    assert stopped.structured_content["job_type"] == "container_stop"
+    assert restarted.structured_content["job_type"] == "container_restart"
+    assert updated.structured_content["job_type"] == "container_redeploy"
+    assert missing_service.is_error is True
+    assert missing_path.is_error is True
+    assert blank.is_error is True
+    posted = [call for call in api.calls if call[0] == "trigger_job"]
+    assert [call[2]["job_type"] for call in posted] == [
+        "container_start",
+        "container_stop",
+        "container_restart",
+        "container_redeploy",
+    ]
+    assert posted[0][2] == {
+        "job_type": "container_start",
+        "source_filter": "/home/pi/docker/grafana",
+        "service": "grafana",
+    }
+    assert all(call[2]["service"] == "grafana" for call in posted)
+    assert all("source_filter" in call[2] for call in posted)
+
+
 def test_set_features_omits_untouched_flags():
     from mcp import Client
 
