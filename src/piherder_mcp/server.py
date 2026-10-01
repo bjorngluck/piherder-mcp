@@ -5,12 +5,13 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
+from pydantic import Field
 
-from piherder_mcp.client import JOB_TYPES, PiherderClient, PiherderError
+from piherder_mcp.client import JOB_TYPES, SERVICE_JOB_TYPES, PiherderClient, PiherderError
 
 JobType = Literal[
     "backup",
@@ -27,6 +28,10 @@ JobType = Literal[
     "docker_stack_restart",
     "template_deploy",
     "template_redeploy",
+    "container_start",
+    "container_stop",
+    "container_restart",
+    "container_redeploy",
 ]
 
 _READ = ToolAnnotations(read_only_hint=True, open_world_hint=True)
@@ -131,18 +136,46 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
         def trigger_job(
             server_id: int,
             job_type: JobType,
-            source_filter: str | None = None,
+            source_filter: Annotated[
+                str | None,
+                Field(
+                    description=(
+                        "Backup source name, or the compose project directory for a "
+                        "docker_stack job. Required with service for container_start, "
+                        "container_stop, container_restart, and container_redeploy."
+                    )
+                ),
+            ] = None,
+            service: Annotated[
+                str | None,
+                Field(
+                    description=(
+                        "Compose service name. Required with source_filter for "
+                        "container_start, container_stop, container_restart, and "
+                        "container_redeploy. Sent on POST /api/v1/servers/{id}/jobs."
+                    )
+                ),
+            ] = None,
             os_steps: list[str] | None = None,
         ) -> dict[str, Any]:
-            """Start backup, retention, os_patch, container_patch, os_update_check, container_update_check, host_reboot, docker_stack_check, docker_stack_deploy, docker_stack_stop, docker_stack_start, docker_stack_restart, template_deploy, or template_redeploy.
+            """Start backup, retention, os_patch, container_patch, os_update_check, container_update_check, host_reboot, docker_stack_check, docker_stack_deploy, docker_stack_stop, docker_stack_start, docker_stack_restart, template_deploy, template_redeploy, container_start, container_stop, container_restart, or container_redeploy.
 
-            For a docker_stack job, source_filter is the compose project path. HTTP 202 means accepted. HTTP 409 means that job is already active: poll get_job and do not start another.
+            For a docker_stack job, source_filter is the compose project path. For container_start, container_stop, container_restart, and container_redeploy, service (compose service name) and source_filter (compose project directory) are required. HTTP 202 means accepted. HTTP 409 means that job is already active: poll get_job and do not start another.
             """
             if job_type not in JOB_TYPES:
                 raise ValueError(f"job_type must be one of {', '.join(JOB_TYPES)}")
+            project = (source_filter or "").strip()
+            service_name = (service or "").strip()
+            if job_type in SERVICE_JOB_TYPES and (not service_name or not project):
+                raise ValueError(
+                    "container_start, container_stop, container_restart, and "
+                    "container_redeploy require service and source_filter"
+                )
             body: dict[str, Any] = {"job_type": job_type}
-            if source_filter:
-                body["source_filter"] = source_filter
+            if project:
+                body["source_filter"] = project
+            if service_name:
+                body["service"] = service_name
             if os_steps:
                 body["os_steps"] = os_steps
             return client.trigger_job(server_id, body)

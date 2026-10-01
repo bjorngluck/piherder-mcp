@@ -14,7 +14,7 @@ stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and ot
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.8.0](https://github.com/bjorngluck/piherder/blob/v1.8.0/docs/RELEASE_v1.8.0.md)** also serves `POST /mcp` on the herder. This adapter is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.2.0** calls the PiHerder bearer API, including the wider `trigger_job` list. That list is the same fourteen types as PiHerder **1.7.0** and as hosted `/mcp` on **v1.8.0**. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.8.0](https://github.com/bjorngluck/piherder/blob/v1.8.0/docs/RELEASE_v1.8.0.md). Adapter notes: [v0.2.0](docs/RELEASE_v0.2.0.md) · [CHANGELOG.md](CHANGELOG.md).
+**Adapter 0.2.0** calls the PiHerder bearer API. The published package matches the fourteen `trigger_job` types on hosted `/mcp` for PiHerder **v1.8.0**. This tree also accepts `container_start`, `container_stop`, `container_restart`, and `container_redeploy` for the PiHerder **v1.9.0** MCP-svc decision. Do not tag or publish that change until hosted MCP on [bjorngluck/piherder](https://github.com/bjorngluck/piherder) exposes the same four types. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.8.0](https://github.com/bjorngluck/piherder/blob/v1.8.0/docs/RELEASE_v1.8.0.md). Adapter notes: [v0.2.0](docs/RELEASE_v0.2.0.md) · [CHANGELOG.md](CHANGELOG.md).
 
 ## Install
 
@@ -103,7 +103,7 @@ Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `write_file`, `mkd
 
 ### `trigger_job` types
 
-`server_id` and `job_type` are required. `source_filter` and `os_steps` are optional. HTTP 202 means accepted. HTTP 409 means that job is already active: poll `get_job` and do not start another. The host feature flag and any `feature:*` scope still apply.
+`server_id` and `job_type` are required. `source_filter`, `service`, and `os_steps` are optional on the tool. For `container_start`, `container_stop`, `container_restart`, and `container_redeploy`, `service` (compose service name) and `source_filter` (compose project directory) are both required and are sent on `POST /api/v1/servers/{id}/jobs`. HTTP 202 means accepted. HTTP 409 means that job is already active: poll `get_job` and do not start another. The host feature flag and any `feature:*` scope still apply. The `jobs` scope is still required. Docker stays behind the server docker flag and `feature:docker` when the token is feature-restricted.
 
 | `job_type` | Host feature | Arguments |
 |------------|----------------|-----------|
@@ -121,8 +121,12 @@ Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `write_file`, `mkd
 | `docker_stack_restart` | docker | `source_filter` is the compose project path. |
 | `template_deploy` | docker | On this list because the jobs POST accepts it. This call has no template slug or variable values, so a catalog deploy still starts from the template UI. |
 | `template_redeploy` | docker | Same as `template_deploy`. |
+| `container_start` | docker | `service` and `source_filter` are required. `service` is the compose service name. `source_filter` is the compose project directory. |
+| `container_stop` | docker | Same required `service` and `source_filter` as `container_start`. |
+| `container_restart` | docker | Same required `service` and `source_filter` as `container_start`. |
+| `container_redeploy` | docker | Same required `service` and `source_filter` as `container_start`. One service, not the whole project. |
 
-Not accepted: `container_start`, `container_stop`, `container_restart`, `container_redeploy` (Home Assistant plugin **0.4.3** only), `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), and undo (`service_migrate_undo`). SSH, the console, nmap, and token admin are not tools. The next PiHerder release will discover whether those four one-service jobs join this list. Adapter **0.2.0** does not send them.
+Not accepted: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), undo (`service_migrate_undo`), and dest-up recover (`service_migrate_dest_recover`). SSH, the console, nmap, and token admin are not tools. Published adapter **0.2.0** does not send the four one-service jobs. This tree does. Tag it only in the same train as the herder allowlist.
 
 ## Wiki
 
