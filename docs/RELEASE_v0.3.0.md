@@ -1,6 +1,6 @@
 # PiHerder MCP 0.3.0
 
-**2 October 2026.** Tag **[v0.3.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.0)** after this commit is on `main`. Package **0.3.0**. PyPI still serves [0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/) until that tag is pushed.
+**2 October 2026.** Tag **[v0.3.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.0)**. Package **[0.3.0](https://pypi.org/project/piherder-mcp/0.3.0/)** on PyPI. Prior package: [0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/).
 
 `trigger_job` accepts the same eighteen job types as hosted `POST /mcp` on PiHerder **[v1.8.1](https://github.com/bjorngluck/piherder/blob/v1.8.1/docs/RELEASE_v1.8.1.md)**. That adds `container_start`, `container_stop`, `container_restart`, and `container_redeploy` on top of the **0.2.0** list. Each of those four needs `service` (compose service name) and `source_filter` (compose project directory). This package is the air-gapped stdio client. A Cursor or Grok connector that already points at hosted `/mcp` does not install it.
 

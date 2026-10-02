@@ -14,7 +14,7 @@ stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and ot
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.8.1](https://github.com/bjorngluck/piherder/blob/v1.8.1/docs/RELEASE_v1.8.1.md)** also serves `POST /mcp` on the herder. This adapter is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.3.0** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.8.1**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.8.1](https://github.com/bjorngluck/piherder/blob/v1.8.1/docs/RELEASE_v1.8.1.md). Adapter notes: [v0.3.0](docs/RELEASE_v0.3.0.md) · [CHANGELOG.md](CHANGELOG.md). PyPI still serves **[0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/)** until tag `v0.3.0` is pushed.
+**Adapter 0.3.0** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.8.1**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.8.1](https://github.com/bjorngluck/piherder/blob/v1.8.1/docs/RELEASE_v1.8.1.md). Adapter notes: [v0.3.0](docs/RELEASE_v0.3.0.md) · [CHANGELOG.md](CHANGELOG.md). PyPI package: **[0.3.0](https://pypi.org/project/piherder-mcp/0.3.0/)**.
 
 ## Install
 
@@ -26,7 +26,7 @@ export PIHERDER_TOKEN='ph_…'
 uvx piherder-mcp
 ```
 
-Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/)**.
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.3.0](https://pypi.org/project/piherder-mcp/0.3.0/)**.
 
 Git fallback (pin a branch or commit):
 
@@ -143,7 +143,7 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 ## Publishing (maintainers)
 
-[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/)** is still the package on PyPI. This commit is **0.3.0**. Notes: [docs/RELEASE_v0.3.0.md](docs/RELEASE_v0.3.0.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.8.1** and links to tag [v1.8.1](https://github.com/bjorngluck/piherder/releases/tag/v1.8.1).
+[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.3.0](https://pypi.org/project/piherder-mcp/0.3.0/)** is the current package. Prior package: [0.2.0](https://pypi.org/project/piherder-mcp/0.2.0/). Notes: [docs/RELEASE_v0.3.0.md](docs/RELEASE_v0.3.0.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.8.1** and links to tag [v1.8.1](https://github.com/bjorngluck/piherder/releases/tag/v1.8.1).
 
 Trusted Publisher is already set: GitHub Environment `pypi`, workflow `release.yml`, owner `bjorngluck`, repository `piherder-mcp`. Later versions reuse it. `github-release` and `publish-pypi` still run independently after the build, so a green GitHub Release is not proof the package is on PyPI.
 
