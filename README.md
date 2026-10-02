@@ -2,8 +2,8 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/github/v/release/bjorngluck/piherder-mcp?label=adapter&style=flat)](https://github.com/bjorngluck/piherder-mcp/releases/latest)
-[![PyPI](https://img.shields.io/pypi/v/piherder-mcp?style=flat)](https://pypi.org/project/piherder-mcp/)
+[![Release](https://img.shields.io/badge/adapter-v0.3.1-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.1)
+[![PyPI](https://img.shields.io/badge/pypi-v0.3.1-blue.svg)](https://pypi.org/project/piherder-mcp/0.3.1/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.8.1-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.8.1/docs/RELEASE_v1.8.1.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://piherder-docs.hacknow.info/operations/mcp/)

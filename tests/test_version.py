@@ -41,10 +41,12 @@ def test_version_sources_match():
 
     readme = (ROOT / "README.md").read_text()
     assert f"<!-- mcp-name: {server['name']} -->" in readme
-    assert "img.shields.io/github/v/release/bjorngluck/piherder-mcp" in readme
-    assert "img.shields.io/pypi/v/piherder-mcp" in readme
-    assert "img.shields.io/github/v/release/bjorngluck/piherder" in readme
-    assert "badge/adapter-v" not in readme
+    assert f"badge/adapter-v{package_version}" in readme
+    assert f"badge/pypi-v{package_version}" in readme
+    assert "img.shields.io/pypi/v/" not in readme
+    assert "img.shields.io/github/v/release/" not in readme
+    for phrase in ("still serves", "until tag", "until the tag"):
+        assert phrase not in readme.lower()
     assert f"**Adapter {package_version}**" in readme
     notes = (ROOT / f"docs/RELEASE_v{package_version}.md").read_text()
     for name in (*TOOL_NAMES, *JOB_TYPES):
