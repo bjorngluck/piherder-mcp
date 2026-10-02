@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-02
+
 ### Added
 
 - `trigger_job` accepts `container_start`, `container_stop`, `container_restart`, and `container_redeploy`.
@@ -14,8 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
-- Package version stays **0.2.0** until the release train. Do not publish this change ahead of hosted MCP on PiHerder. The herder companion must expose the same four types first (PiHerder **v1.9.0**, `docs/DECISION_MCP_SVC.md`).
+- Hosted `POST /mcp` on PiHerder **v1.8.1** already accepts the same four types. This package is the air-gapped stdio client.
 - Still refused: Move, undo, dest-up recover, nmap, `docker_stack_down`, `docker_stack_remove`, and `template_drift_check`.
+- Operator notes: [docs/RELEASE_v0.3.0.md](docs/RELEASE_v0.3.0.md).
 
 ## [0.2.0] - 2026-09-28
 
