@@ -4,8 +4,8 @@
 
 | Version | Support |
 |---------|---------|
-| **0.3.x** | Current PyPI release (`uvx piherder-mcp`) |
-| **0.2.x and older** | Upgrade to **0.3.1** |
+| **0.4.x** | Supported (`uvx piherder-mcp`) |
+| **0.3.x and older** | Upgrade to **0.4.0** |
 
 ## Reporting a vulnerability
 

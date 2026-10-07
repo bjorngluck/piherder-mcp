@@ -35,6 +35,13 @@ JOB_TYPES = (
     *SERVICE_JOB_TYPES,
 )
 
+DISCOVERY_INTENSITIES = (
+    "discovery",
+    "inventory",
+    "detailed",
+    "deep",
+)
+
 
 class PiherderError(Exception):
     def __init__(self, status: int, body: Any):
@@ -182,6 +189,37 @@ class PiherderClient:
             f"/api/v1/servers/{server_id}/jobs",
             json=body,
             ok=(202, 409),
+        )
+
+    def start_move(self, server_id: int, dest_server_id: int, project: str) -> dict[str, Any]:
+        """Stop-first Move. confirm is always true. 409 means a job is already active."""
+        return self._json(
+            "POST",
+            f"/api/v1/servers/{server_id}/moves",
+            json={
+                "dest_server_id": dest_server_id,
+                "project": project,
+                "confirm": True,
+            },
+            ok=(202, 409),
+        )
+
+    def list_discovery(self) -> dict[str, Any]:
+        return self._json("GET", "/api/v1/discovery")
+
+    def get_discovery(self, integration_id: int) -> dict[str, Any]:
+        return self._json("GET", f"/api/v1/discovery/{integration_id}")
+
+    def get_discovery_run(self, integration_id: int, run_id: int) -> dict[str, Any]:
+        return self._json("GET", f"/api/v1/discovery/{integration_id}/runs/{run_id}")
+
+    def start_discovery(self, integration_id: int, intensity: str) -> dict[str, Any]:
+        """Scan the ranges saved on the integration. The body has no targets."""
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/scans",
+            json={"confirm": True, "intensity": intensity},
+            ok=(202,),
         )
 
     def list_files(self, server_id: int, p: str = "") -> dict[str, Any]:

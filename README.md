@@ -2,8 +2,8 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.3.1-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.1)
-[![PyPI](https://img.shields.io/badge/pypi-v0.3.1-blue.svg)](https://pypi.org/project/piherder-mcp/0.3.1/)
+[![Release](https://img.shields.io/badge/adapter-v0.4.0-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.4.0)
+[![PyPI](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/piherder-mcp/0.4.0/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.10.0-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://piherder-docs.hacknow.info/operations/mcp/)
@@ -14,7 +14,7 @@ stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and ot
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md)** also serves `POST /mcp` on the herder, including browser sign-in. This adapter does not use that sign-in. It is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.3.1** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.10.0**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Adapter notes: [v0.3.1](docs/RELEASE_v0.3.1.md) · [CHANGELOG.md](CHANGELOG.md). PyPI package: **[0.3.1](https://pypi.org/project/piherder-mcp/0.3.1/)**.
+**Adapter 0.4.0** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.10.0**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. `start_move`, `read_discovery`, and `start_discovery` match the hosted tools on the v1.11 train. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Adapter notes: [v0.4.0](docs/RELEASE_v0.4.0.md) · [CHANGELOG.md](CHANGELOG.md). PyPI package: **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)**.
 
 ## Install
 
@@ -26,7 +26,7 @@ export PIHERDER_TOKEN='ph_…'
 uvx piherder-mcp
 ```
 
-Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.3.1](https://pypi.org/project/piherder-mcp/0.3.1/)**.
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)**.
 
 Git fallback (pin a branch or commit):
 
@@ -78,7 +78,7 @@ The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor
 
 ## Tools
 
-A token with `read`, `jobs`, `edit`, and `files` has these 16 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
+A token with `read`, `jobs`, `edit`, and `files` has these 19 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
 
 | Tool | Scope | What it does |
 |------|--------|----------------|
@@ -90,7 +90,10 @@ A token with `read`, `jobs`, `edit`, and `files` has these 16 tools. A missing s
 | `services` | `read` | Stored service up/down chips. Does not poll Uptime Kuma or Nginx Proxy Manager. |
 | `list_jobs` | `read` | Jobs. Optional `server_id`, `status_filter`, `job_type`, `active_only`, `limit`, `offset`. |
 | `get_job` | `read` | One job. `detail` true includes a longer log tail. |
+| `read_discovery` | `read` | Read saved LAN Discovery ranges and recent scans. |
 | `trigger_job` | `jobs` | Start one job type from the table below. |
+| `start_move` | `jobs` | Start a stop-first Move. `confirm` must be true. The source stack is left stopped. There is no undo. |
+| `start_discovery` | `jobs` | Start a scan of the saved LAN Discovery ranges. `confirm` must be true. |
 | `set_features` | `edit` | Toggle `backup`, `os_patch`, or `docker`. Omit a field to leave it unchanged. |
 | `list_files` | `files` | List a fleet-jail directory. `p` is jail-relative. `""` is the jail root. |
 | `read_file` | `files` | Download one fleet-jail file. Capped around 256 KiB. The result says when it was cut. |
@@ -99,7 +102,7 @@ A token with `read`, `jobs`, `edit`, and `files` has these 16 tools. A missing s
 | `rename_file` | `files` | Rename inside the current directory. `p`, `src`, `dest`. |
 | `delete_file` | `files` | Delete one file or an empty directory. Not recursive. |
 
-Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
+Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `start_move`, `start_discovery`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
 
 ### `trigger_job` types
 
@@ -126,7 +129,17 @@ Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `write_file`, `mkd
 | `container_restart` | docker | Same required `service` and `source_filter` as `container_start`. |
 | `container_redeploy` | docker | Same required `service` and `source_filter` as `container_start`. One service, not the whole project. |
 
-Not accepted: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), undo (`service_migrate_undo`), and dest-up recover (`service_migrate_dest_recover`). SSH, the console, nmap, and token admin are not tools. Adapter **0.2.0** did not send the four one-service jobs. This package does.
+Not accepted on `trigger_job`: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), undo (`service_migrate_undo`), and dest-up recover (`service_migrate_dest_recover`). SSH, the console, and token admin are not tools. A Move is `start_move`. A LAN Discovery scan is `read_discovery` and `start_discovery`. Adapter **0.3.1** did not send those three. This package does.
+
+### Move
+
+`start_move` takes `server_id` (the source), `dest_server_id`, `project` (the compose project name, not a directory), and `confirm: true`. It calls `POST /api/v1/servers/{id}/moves`. The source stack is left stopped. There is no undo. **409** means a stack, Move, or backup is already running. Poll `get_job`. That route is on PiHerder **1.10.0**.
+
+### LAN Discovery
+
+`read_discovery` lists saved ranges and the latest scan. Pass `integration_id` for recent scans, or `integration_id` and `run_id` for one scan.
+
+`start_discovery` takes `integration_id` and `confirm: true`. Optional `intensity` is `discovery`, `inventory`, `detailed`, or `deep`. The body is `confirm` and `intensity` only. The scan uses the ranges saved on that integration. The agent does not choose the ranges. Vulnerability scripts stay off. These two tools call `/api/v1/discovery`. A herder without that route returns **404**.
 
 ## Wiki
 
@@ -134,7 +147,7 @@ Not accepted: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`
 |-------|------|
 | PiHerder v1.10.0 | [Notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Package **1.10.0**. Prior tag: [v1.9.0](https://github.com/bjorngluck/piherder/releases/tag/v1.9.0) |
 | PiHerder v1.9.0 | [Notes](https://github.com/bjorngluck/piherder/blob/v1.9.0/docs/RELEASE_v1.9.0.md). Tag [v1.9.0](https://github.com/bjorngluck/piherder/releases/tag/v1.9.0). Prior: [v1.8.1](https://github.com/bjorngluck/piherder/releases/tag/v1.8.1) |
-| Adapter 0.3.1 | [Notes](docs/RELEASE_v0.3.1.md) · [changelog](CHANGELOG.md). Prior package: [0.3.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.0) |
+| Adapter 0.4.0 | [Notes](docs/RELEASE_v0.4.0.md) · [changelog](CHANGELOG.md). Prior package: [0.3.1](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.1) |
 | Install, clients, scopes | [Agents (MCP)](https://piherder-docs.hacknow.info/operations/mcp/) |
 | Token scopes and allowlist | [API tokens](https://piherder-docs.hacknow.info/operations/api-tokens/) |
 | Jobs the token can start | [Jobs](https://piherder-docs.hacknow.info/day-to-day/jobs-audit-notifications/) |
@@ -144,7 +157,7 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 ## Publishing (maintainers)
 
-[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.3.1](https://pypi.org/project/piherder-mcp/0.3.1/)** is the current package. Prior package: [0.3.0](https://pypi.org/project/piherder-mcp/0.3.0/). Notes: [docs/RELEASE_v0.3.1.md](docs/RELEASE_v0.3.1.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.10.0** and links to the [v1.10.0 notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md).
+[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)** is the current package. Prior package: [0.3.1](https://pypi.org/project/piherder-mcp/0.3.1/). Notes: [docs/RELEASE_v0.4.0.md](docs/RELEASE_v0.4.0.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.10.0** and links to the [v1.10.0 notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md).
 
 Trusted Publisher is already set: GitHub Environment `pypi`, workflow `release.yml`, owner `bjorngluck`, repository `piherder-mcp`. Later versions reuse it. `github-release` and `publish-pypi` still run independently after the build, so a green GitHub Release is not proof the package is on PyPI.
 

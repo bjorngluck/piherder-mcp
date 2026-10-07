@@ -15,6 +15,7 @@ READ = {
     "services",
     "list_jobs",
     "get_job",
+    "read_discovery",
 }
 FILES = {"list_files", "read_file", "write_file", "mkdir", "rename_file", "delete_file"}
 
@@ -61,6 +62,30 @@ class Recording:
         if body["job_type"] == "backup":
             return {"status": 409, "job": {"id": 9, "status": "running"}}
         return {"status": 202, "job_id": 3, "job_type": body["job_type"]}
+
+    def start_move(self, server_id, dest_server_id, project):
+        self.calls.append(("start_move", server_id, dest_server_id, project))
+        return {"status": 202, "job_id": 8, "leftover": "stopped"}
+
+    def list_discovery(self):
+        self.calls.append(("list_discovery",))
+        return {"integrations": []}
+
+    def get_discovery(self, integration_id):
+        self.calls.append(("get_discovery", integration_id))
+        return {"integration": {"id": integration_id}}
+
+    def get_discovery_run(self, integration_id, run_id):
+        self.calls.append(("get_discovery_run", integration_id, run_id))
+        return {"run": {"id": run_id, "hosts_up": 2}}
+
+    def start_discovery(self, integration_id, intensity):
+        self.calls.append(("start_discovery", integration_id, intensity))
+        return {
+            "status": 202,
+            "intensity": intensity,
+            "targets": ["192.168.86.0/24"],
+        }
 
     def list_files(self, server_id, p=""):
         return {"entries": [], "p": p}
@@ -109,9 +134,12 @@ def test_read_token_has_no_write_tools():
 def test_scopes_add_write_tools_and_mark_them_destructive():
     _api, listed = _tools({"read", "jobs", "edit", "files"})
     names = {tool.name for tool in listed}
-    assert names == READ | {"trigger_job", "set_features"} | FILES
+    assert names == READ | {"trigger_job", "start_move", "start_discovery", "set_features"} | FILES
     by_name = {tool.name: tool for tool in listed}
     assert by_name["trigger_job"].annotations.destructive_hint is True
+    assert by_name["start_move"].annotations.destructive_hint is True
+    assert by_name["start_discovery"].annotations.destructive_hint is True
+    assert by_name["read_discovery"].annotations.read_only_hint is True
     assert by_name["delete_file"].annotations.destructive_hint is True
     assert by_name["read_file"].annotations.read_only_hint is True
 
@@ -303,6 +331,107 @@ def test_set_features_omits_untouched_flags():
     assert changed.structured_content["features"] == {"docker": False}
     assert empty.structured_content["ok"] is False
     assert api.calls == [("set_features", 2, {"docker": False})]
+
+
+def test_start_move_and_discovery_use_saved_routes():
+    from mcp import Client
+
+    api = Recording()
+    server = build_server(api, {"read", "jobs"})
+
+    async def run():
+        async with Client(server) as client:
+            listed = {tool.name for tool in (await client.list_tools()).tools}
+            refused = await client.call_tool(
+                "start_move",
+                {
+                    "server_id": 1,
+                    "dest_server_id": 2,
+                    "project": "web",
+                    "confirm": False,
+                },
+            )
+            moved = await client.call_tool(
+                "start_move",
+                {
+                    "server_id": 1,
+                    "dest_server_id": 2,
+                    "project": "web",
+                    "confirm": True,
+                },
+            )
+            scan_refused = await client.call_tool(
+                "start_discovery",
+                {"integration_id": 4, "confirm": False, "intensity": "deep"},
+            )
+            scan = await client.call_tool(
+                "start_discovery",
+                {"integration_id": 4, "confirm": True},
+            )
+            bad = await client.call_tool(
+                "start_discovery",
+                {"integration_id": 4, "confirm": True, "intensity": "nope"},
+            )
+            read = await client.call_tool(
+                "read_discovery",
+                {"integration_id": 4, "run_id": 9},
+            )
+            return listed, refused, moved, scan_refused, scan, bad, read
+
+    listed, refused, moved, scan_refused, scan, bad, read = asyncio.run(run())
+    assert "start_move" in listed
+    assert "start_discovery" in listed
+    assert refused.is_error is True
+    assert scan_refused.is_error is True
+    assert bad.is_error is True
+    assert moved.structured_content["leftover"] == "stopped"
+    assert scan.structured_content["targets"] == ["192.168.86.0/24"]
+    assert read.structured_content["run"]["hosts_up"] == 2
+    assert ("start_move", 1, 2, "web") in api.calls
+    assert ("start_discovery", 4, "discovery") in api.calls
+    assert ("get_discovery_run", 4, 9) in api.calls
+    assert all(call[0] != "trigger_job" or call[2].get("job_type") != "service_migrate" for call in api.calls)
+    posted_moves = [call for call in api.calls if call[0] == "start_move"]
+    assert len(posted_moves) == 1
+
+
+def test_http_move_and_discovery_bodies():
+    seen = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        body = {}
+        if request.content:
+            body = httpx2.Response(200, content=request.content).json()
+        seen.append((request.method, request.url.path, body))
+        if request.url.path.endswith("/moves"):
+            return httpx2.Response(202, json={"job_id": 1, "leftover": "stopped"})
+        if request.url.path.endswith("/scans"):
+            return httpx2.Response(202, json={"job_id": 2, "targets": ["192.168.86.0/24"]})
+        if request.url.path.endswith("/runs/9"):
+            return httpx2.Response(200, json={"run": {"id": 9}})
+        if request.url.path.endswith("/discovery"):
+            return httpx2.Response(200, json={"integrations": []})
+        return httpx2.Response(500, json={"detail": "unexpected"})
+
+    client = PiherderClient(
+        "https://herder.example",
+        "ph_test",
+        transport=httpx2.MockTransport(handler),
+    )
+    moved = client.start_move(5, 6, "web")
+    assert moved["leftover"] == "stopped"
+    scanned = client.start_discovery(3, "inventory")
+    assert scanned["targets"] == ["192.168.86.0/24"]
+    client.get_discovery_run(3, 9)
+    client.list_discovery()
+    move_body = seen[0][2]
+    assert move_body == {"dest_server_id": 6, "project": "web", "confirm": True}
+    assert "targets" not in seen[1][2]
+    assert seen[1][2] == {"confirm": True, "intensity": "inventory"}
+    assert seen[0][1].endswith("/servers/5/moves")
+    assert seen[1][1].endswith("/discovery/3/scans")
+    assert all("service_migrate" not in path for _method, path, _body in seen)
+    client.close()
 
 
 def test_present_file_caps_and_marks_binary():

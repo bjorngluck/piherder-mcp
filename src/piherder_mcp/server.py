@@ -11,7 +11,13 @@ from mcp.server import MCPServer
 from mcp.types import ToolAnnotations
 from pydantic import Field
 
-from piherder_mcp.client import JOB_TYPES, SERVICE_JOB_TYPES, PiherderClient, PiherderError
+from piherder_mcp.client import (
+    DISCOVERY_INTENSITIES,
+    JOB_TYPES,
+    SERVICE_JOB_TYPES,
+    PiherderClient,
+    PiherderError,
+)
 
 JobType = Literal[
     "backup",
@@ -101,8 +107,26 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
     mcp.tool(annotations=_READ)(get_server)
     mcp.tool(annotations=_READ)(inventory)
     mcp.tool(annotations=_READ)(services)
+    def read_discovery(
+        integration_id: int | None = None,
+        run_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Read LAN Discovery. Omit integration_id to list saved ranges and the latest scan.
+
+        Pass integration_id for recent scans and a short device list. Pass run_id
+        with integration_id for one scan. No credentials and no script output.
+        """
+        if run_id is not None and integration_id is None:
+            raise ValueError("run_id requires integration_id")
+        if run_id is not None:
+            return client.get_discovery_run(integration_id, run_id)
+        if integration_id is not None:
+            return client.get_discovery(integration_id)
+        return client.list_discovery()
+
     mcp.tool(annotations=_READ)(list_jobs)
     mcp.tool(annotations=_READ)(get_job)
+    mcp.tool(annotations=_READ)(read_discovery)
 
     if "edit" in scopes:
 
@@ -180,7 +204,47 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 body["os_steps"] = os_steps
             return client.trigger_job(server_id, body)
 
+        def start_move(
+            server_id: int,
+            dest_server_id: int,
+            project: str,
+            confirm: bool,
+        ) -> dict[str, Any]:
+            """Start a stop-first Move. confirm must be true.
+
+            server_id is the source. project is the compose project name, not a
+            directory. The source stack is left stopped. There is no undo.
+            HTTP 202 means accepted. HTTP 409 means a stack, Move, or backup is
+            already running: poll get_job.
+            """
+            if confirm is not True:
+                raise ValueError("confirm must be true")
+            name = (project or "").strip()
+            if not name:
+                raise ValueError("project is required")
+            return client.start_move(server_id, dest_server_id, name)
+
+        def start_discovery(
+            integration_id: int,
+            confirm: bool,
+            intensity: str | None = None,
+        ) -> dict[str, Any]:
+            """Start a LAN Discovery scan of the ranges saved on that integration.
+
+            confirm must be true. intensity is discovery, inventory, detailed, or
+            deep. The agent does not choose targets. Vulnerability scripts stay off.
+            """
+            if confirm is not True:
+                raise ValueError("confirm must be true")
+            chosen = (intensity or "discovery").strip().lower() or "discovery"
+            if chosen not in DISCOVERY_INTENSITIES:
+                allowed = ", ".join(DISCOVERY_INTENSITIES)
+                raise ValueError(f"intensity must be one of {allowed}")
+            return client.start_discovery(integration_id, chosen)
+
         mcp.tool(annotations=_WRITE)(trigger_job)
+        mcp.tool(annotations=_WRITE)(start_move)
+        mcp.tool(annotations=_WRITE)(start_discovery)
 
     if "files" in scopes:
 

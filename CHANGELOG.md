@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-07
+
+### Added
+
+- `start_move` starts a stop-first Move. `confirm` must be true. The source stack is left stopped. There is no undo.
+- `read_discovery` reads saved LAN Discovery ranges and recent scans.
+- `start_discovery` scans those saved ranges. `confirm` must be true. The agent does not choose the targets. Vulnerability scripts stay off.
+
+### Notes
+
+- `trigger_job` still refuses `service_migrate`, undo, and nmap job types.
+- `start_move` calls `POST /api/v1/servers/{id}/moves`. That route is on PiHerder **1.10.0**.
+- `read_discovery` and `start_discovery` call `/api/v1/discovery`. A herder without that route returns **404**.
+- Operator notes: [docs/RELEASE_v0.4.0.md](docs/RELEASE_v0.4.0.md).
+
 ## [0.3.1] - 2026-10-02
 
 ### Fixed
