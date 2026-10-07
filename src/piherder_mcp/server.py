@@ -124,9 +124,30 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             return client.get_discovery(integration_id)
         return client.list_discovery()
 
+    def list_discovery_devices(
+        integration_id: int,
+        state: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Page LAN Discovery devices. state is new, known, linked, ignored, or stale.
+
+        limit defaults to 50 and caps at 200. offset pages. No MAC, notes, or script output.
+        """
+        chosen = (state or "").strip().lower() or None
+        if chosen is not None and chosen not in ("new", "known", "linked", "ignored", "stale"):
+            raise ValueError("state must be one of new, known, linked, ignored, stale")
+        return client.list_discovery_devices(
+            integration_id,
+            state=chosen,
+            limit=limit,
+            offset=offset,
+        )
+
     mcp.tool(annotations=_READ)(list_jobs)
     mcp.tool(annotations=_READ)(get_job)
     mcp.tool(annotations=_READ)(read_discovery)
+    mcp.tool(annotations=_READ)(list_discovery_devices)
 
     if "edit" in scopes:
 
@@ -153,7 +174,77 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 }
             return client.set_features(server_id, fields)
 
+        def rename_discovery_device(
+            integration_id: int,
+            device_id: int,
+            display_name: str,
+        ) -> dict[str, Any]:
+            """Set the operator name. Kind and map role stay. An empty name clears it.
+
+            A new or offline device becomes known.
+            """
+            return client.patch_discovery_device(
+                integration_id,
+                device_id,
+                {"display_name": display_name},
+            )
+
+        def set_discovery_device_state(
+            integration_id: int,
+            device_id: int,
+            state: str,
+        ) -> dict[str, Any]:
+            """Set known, new, or ignored. A linked device cannot be marked new."""
+            chosen = (state or "").strip().lower()
+            if chosen not in ("known", "new", "ignored"):
+                raise ValueError("state must be one of known, new, ignored")
+            return client.patch_discovery_device(
+                integration_id,
+                device_id,
+                {"state": chosen},
+            )
+
+        def link_discovery_device(
+            integration_id: int,
+            device_id: int,
+            server_id: int,
+        ) -> dict[str, Any]:
+            """Link a LAN Discovery device to a fleet server."""
+            return client.link_discovery_device(integration_id, device_id, server_id)
+
+        def unlink_discovery_device(integration_id: int, device_id: int) -> dict[str, Any]:
+            """Unlink a LAN Discovery device. The device becomes known."""
+            return client.unlink_discovery_device(integration_id, device_id)
+
+        def purge_discovery_device(
+            integration_id: int,
+            device_id: int,
+            confirm: bool,
+        ) -> dict[str, Any]:
+            """Permanently delete one device. confirm must be true. A linked device is refused.
+
+            There is no undo.
+            """
+            if confirm is not True:
+                raise ValueError("confirm must be true")
+            return client.purge_discovery_device(integration_id, device_id)
+
+        def purge_stale_discovery_devices(integration_id: int, confirm: bool) -> dict[str, Any]:
+            """Permanently delete offline devices. confirm must be true. Linked devices stay.
+
+            There is no undo. The result lists the removed ids.
+            """
+            if confirm is not True:
+                raise ValueError("confirm must be true")
+            return client.purge_stale_discovery_devices(integration_id)
+
         mcp.tool(annotations=_WRITE)(set_features)
+        mcp.tool(annotations=_WRITE)(rename_discovery_device)
+        mcp.tool(annotations=_WRITE)(set_discovery_device_state)
+        mcp.tool(annotations=_WRITE)(link_discovery_device)
+        mcp.tool(annotations=_WRITE)(unlink_discovery_device)
+        mcp.tool(annotations=_WRITE)(purge_discovery_device)
+        mcp.tool(annotations=_WRITE)(purge_stale_discovery_devices)
 
     if "jobs" in scopes:
 
@@ -242,9 +333,30 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 raise ValueError(f"intensity must be one of {allowed}")
             return client.start_discovery(integration_id, chosen)
 
+        def scan_discovery_device(
+            integration_id: int,
+            device_id: int,
+            confirm: bool,
+            intensity: str | None = None,
+        ) -> dict[str, Any]:
+            """Scan one LAN Discovery device. confirm must be true.
+
+            intensity is discovery, inventory, detailed, or deep. Default deep.
+            The device address must sit inside the saved ranges. Vulnerability
+            scripts stay off.
+            """
+            if confirm is not True:
+                raise ValueError("confirm must be true")
+            chosen = (intensity or "deep").strip().lower() or "deep"
+            if chosen not in DISCOVERY_INTENSITIES:
+                allowed = ", ".join(DISCOVERY_INTENSITIES)
+                raise ValueError(f"intensity must be one of {allowed}")
+            return client.scan_discovery_device(integration_id, device_id, chosen)
+
         mcp.tool(annotations=_WRITE)(trigger_job)
         mcp.tool(annotations=_WRITE)(start_move)
         mcp.tool(annotations=_WRITE)(start_discovery)
+        mcp.tool(annotations=_WRITE)(scan_discovery_device)
 
     if "files" in scopes:
 

@@ -16,6 +16,7 @@ READ = {
     "list_jobs",
     "get_job",
     "read_discovery",
+    "list_discovery_devices",
 }
 FILES = {"list_files", "read_file", "write_file", "mkdir", "rename_file", "delete_file"}
 
@@ -87,6 +88,34 @@ class Recording:
             "targets": ["192.168.86.0/24"],
         }
 
+    def list_discovery_devices(self, integration_id, *, state=None, limit=50, offset=0):
+        self.calls.append(("list_discovery_devices", integration_id, state, limit, offset))
+        return {"devices": [], "total": 0, "limit": limit, "offset": offset}
+
+    def patch_discovery_device(self, integration_id, device_id, body):
+        self.calls.append(("patch_discovery_device", integration_id, device_id, body))
+        return {"device": {"id": device_id, **body}}
+
+    def link_discovery_device(self, integration_id, device_id, server_id):
+        self.calls.append(("link_discovery_device", integration_id, device_id, server_id))
+        return {"device": {"id": device_id, "state": "linked", "linked_server_id": server_id}}
+
+    def unlink_discovery_device(self, integration_id, device_id):
+        self.calls.append(("unlink_discovery_device", integration_id, device_id))
+        return {"device": {"id": device_id, "state": "known"}}
+
+    def purge_discovery_device(self, integration_id, device_id):
+        self.calls.append(("purge_discovery_device", integration_id, device_id))
+        return {"device_ids": [device_id], "purged": 1}
+
+    def purge_stale_discovery_devices(self, integration_id):
+        self.calls.append(("purge_stale_discovery_devices", integration_id))
+        return {"device_ids": [3], "purged": 1}
+
+    def scan_discovery_device(self, integration_id, device_id, intensity):
+        self.calls.append(("scan_discovery_device", integration_id, device_id, intensity))
+        return {"status": 202, "targets": ["192.168.86.11"], "intensity": intensity}
+
     def list_files(self, server_id, p=""):
         return {"entries": [], "p": p}
 
@@ -134,12 +163,27 @@ def test_read_token_has_no_write_tools():
 def test_scopes_add_write_tools_and_mark_them_destructive():
     _api, listed = _tools({"read", "jobs", "edit", "files"})
     names = {tool.name for tool in listed}
-    assert names == READ | {"trigger_job", "start_move", "start_discovery", "set_features"} | FILES
+    assert names == READ | {
+        "trigger_job",
+        "start_move",
+        "start_discovery",
+        "scan_discovery_device",
+        "set_features",
+        "rename_discovery_device",
+        "set_discovery_device_state",
+        "link_discovery_device",
+        "unlink_discovery_device",
+        "purge_discovery_device",
+        "purge_stale_discovery_devices",
+    } | FILES
     by_name = {tool.name: tool for tool in listed}
     assert by_name["trigger_job"].annotations.destructive_hint is True
     assert by_name["start_move"].annotations.destructive_hint is True
     assert by_name["start_discovery"].annotations.destructive_hint is True
+    assert by_name["scan_discovery_device"].annotations.destructive_hint is True
+    assert by_name["purge_discovery_device"].annotations.destructive_hint is True
     assert by_name["read_discovery"].annotations.read_only_hint is True
+    assert by_name["list_discovery_devices"].annotations.read_only_hint is True
     assert by_name["delete_file"].annotations.destructive_hint is True
     assert by_name["read_file"].annotations.read_only_hint is True
 
@@ -393,6 +437,95 @@ def test_start_move_and_discovery_use_saved_routes():
     assert all(call[0] != "trigger_job" or call[2].get("job_type") != "service_migrate" for call in api.calls)
     posted_moves = [call for call in api.calls if call[0] == "start_move"]
     assert len(posted_moves) == 1
+
+
+def test_discovery_device_tools_confirm_and_bodies():
+    from mcp import Client
+
+    api = Recording()
+    server = build_server(api, {"read", "edit", "jobs"})
+
+    async def run():
+        async with Client(server) as client:
+            refused = await client.call_tool(
+                "purge_discovery_device",
+                {"integration_id": 3, "device_id": 8, "confirm": False},
+            )
+            purged = await client.call_tool(
+                "purge_discovery_device",
+                {"integration_id": 3, "device_id": 8, "confirm": True},
+            )
+            stale_refused = await client.call_tool(
+                "purge_stale_discovery_devices",
+                {"integration_id": 3, "confirm": False},
+            )
+            renamed = await client.call_tool(
+                "rename_discovery_device",
+                {"integration_id": 3, "device_id": 8, "display_name": "Front camera"},
+            )
+            scan_refused = await client.call_tool(
+                "scan_discovery_device",
+                {"integration_id": 3, "device_id": 8, "confirm": False},
+            )
+            scanned = await client.call_tool(
+                "scan_discovery_device",
+                {"integration_id": 3, "device_id": 8, "confirm": True},
+            )
+            return refused, purged, stale_refused, renamed, scan_refused, scanned
+
+    refused, purged, stale_refused, renamed, scan_refused, scanned = asyncio.run(run())
+    assert refused.is_error is True
+    assert stale_refused.is_error is True
+    assert scan_refused.is_error is True
+    assert purged.structured_content["device_ids"] == [8]
+    assert renamed.structured_content["device"]["display_name"] == "Front camera"
+    assert scanned.structured_content["intensity"] == "deep"
+    assert ("purge_discovery_device", 3, 8) in api.calls
+    assert ("scan_discovery_device", 3, 8, "deep") in api.calls
+    assert all(call[0] != "purge_stale_discovery_devices" for call in api.calls)
+
+    seen = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        body = {}
+        if request.content:
+            body = httpx2.Response(200, content=request.content).json()
+        seen.append((request.method, request.url.path, dict(request.url.params), body))
+        if request.method == "DELETE":
+            return httpx2.Response(200, json={"device_ids": [8], "purged": 1})
+        if request.url.path.endswith("/purge-stale"):
+            return httpx2.Response(200, json={"device_ids": [3], "purged": 1})
+        if request.url.path.endswith("/scans"):
+            return httpx2.Response(202, json={"targets": ["192.168.86.11"], "intensity": "deep"})
+        if request.method == "PATCH":
+            return httpx2.Response(200, json={"device": body})
+        if request.method == "GET":
+            return httpx2.Response(200, json={"devices": [], "total": 0})
+        return httpx2.Response(200, json={"ok": True})
+
+    http = PiherderClient(
+        "https://herder.example",
+        "ph_test",
+        transport=httpx2.MockTransport(handler),
+    )
+    http.list_discovery_devices(3, state="stale", limit=10, offset=0)
+    http.patch_discovery_device(3, 8, {"display_name": "Front camera"})
+    http.purge_discovery_device(3, 8)
+    http.scan_discovery_device(3, 8, "deep")
+    assert seen[0][0] == "GET"
+    assert seen[0][1].endswith("/discovery/3/devices")
+    assert seen[0][2]["state"] == "stale"
+    assert seen[1] == (
+        "PATCH",
+        "/api/v1/discovery/3/devices/8",
+        {},
+        {"display_name": "Front camera"},
+    )
+    assert seen[2][0] == "DELETE"
+    assert seen[2][1].endswith("/devices/8")
+    assert seen[3][3] == {"confirm": True, "intensity": "deep"}
+    assert "targets" not in seen[3][3]
+    http.close()
 
 
 def test_http_move_and_discovery_bodies():

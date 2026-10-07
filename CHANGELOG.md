@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-07
+
+### Added
+
+- `list_discovery_devices` pages LAN Discovery devices. `state` filters `new`, `known`, `linked`, `ignored`, or `stale`.
+- `rename_discovery_device` sets the operator name. Kind and map role stay.
+- `set_discovery_device_state` sets `known`, `new`, or `ignored`.
+- `link_discovery_device` and `unlink_discovery_device` tie a device to a fleet server.
+- `purge_discovery_device` and `purge_stale_discovery_devices` need `confirm: true`. A linked device cannot be purged. There is no undo.
+- `scan_discovery_device` scans one device inside the saved ranges. Vulnerability scripts stay off.
+
+### Notes
+
+- `trigger_job` is unchanged.
+- Operator notes: [docs/RELEASE_v0.4.1.md](docs/RELEASE_v0.4.1.md).
+
 ## [0.4.0] - 2026-10-07
 
 ### Added

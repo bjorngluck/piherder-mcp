@@ -2,8 +2,8 @@
 
 # PiHerder MCP
 
-[![Release](https://img.shields.io/badge/adapter-v0.4.0-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.4.0)
-[![PyPI](https://img.shields.io/badge/pypi-v0.4.0-blue.svg)](https://pypi.org/project/piherder-mcp/0.4.0/)
+[![Release](https://img.shields.io/badge/adapter-v0.4.1-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.4.1)
+[![PyPI](https://img.shields.io/badge/pypi-v0.4.1-blue.svg)](https://pypi.org/project/piherder-mcp/0.4.1/)
 [![PiHerder](https://img.shields.io/badge/PiHerder-v1.10.0-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://piherder-docs.hacknow.info/operations/mcp/)
@@ -14,7 +14,7 @@ stdio process that lets Cursor, Claude, Codex, Windsurf, Continue, Goose, and ot
 
 It runs on the computer that runs the agent. It is not part of the PiHerder image. PiHerder **[v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md)** also serves `POST /mcp` on the herder, including browser sign-in. This adapter does not use that sign-in. It is the air-gapped fallback for a machine that cannot reach that URL. The public demo is not a target.
 
-**Adapter 0.4.0** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.10.0**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. `start_move`, `read_discovery`, and `start_discovery` match the hosted tools on the v1.11 train. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Adapter notes: [v0.4.0](docs/RELEASE_v0.4.0.md) · [CHANGELOG.md](CHANGELOG.md). PyPI package: **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)**.
+**Adapter 0.4.1** calls the PiHerder bearer API. `trigger_job` accepts the same list as hosted `/mcp` on PiHerder **v1.10.0**, including `container_start`, `container_stop`, `container_restart`, and `container_redeploy`. `start_move`, `read_discovery`, and `start_discovery` match the hosted tools on the v1.11 train. `list_discovery_devices`, `rename_discovery_device`, `set_discovery_device_state`, `link_discovery_device`, `unlink_discovery_device`, `purge_discovery_device`, `purge_stale_discovery_devices`, and `scan_discovery_device` tidy LAN Discovery devices. MCP registry name: `io.github.bjorngluck/piherder-mcp` (see [`server.json`](server.json)). Herder notes: [PiHerder v1.10.0](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Adapter notes: [v0.4.1](docs/RELEASE_v0.4.1.md) · [CHANGELOG.md](CHANGELOG.md). PyPI package: **[0.4.1](https://pypi.org/project/piherder-mcp/0.4.1/)**.
 
 ## Install
 
@@ -26,7 +26,7 @@ export PIHERDER_TOKEN='ph_…'
 uvx piherder-mcp
 ```
 
-Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)**.
+Requires [uv](https://docs.astral.sh/uv/) (`uvx`). The package is on [PyPI](https://pypi.org/project/piherder-mcp/). `uvx piherder-mcp` installs the latest published release, **[0.4.1](https://pypi.org/project/piherder-mcp/0.4.1/)**.
 
 Git fallback (pin a branch or commit):
 
@@ -78,7 +78,7 @@ The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor
 
 ## Tools
 
-A token with `read`, `jobs`, `edit`, and `files` has these 19 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
+A token with `read`, `jobs`, `edit`, and `files` has these 27 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
 
 | Tool | Scope | What it does |
 |------|--------|----------------|
@@ -91,10 +91,18 @@ A token with `read`, `jobs`, `edit`, and `files` has these 19 tools. A missing s
 | `list_jobs` | `read` | Jobs. Optional `server_id`, `status_filter`, `job_type`, `active_only`, `limit`, `offset`. |
 | `get_job` | `read` | One job. `detail` true includes a longer log tail. |
 | `read_discovery` | `read` | Read saved LAN Discovery ranges and recent scans. |
+| `list_discovery_devices` | `read` | Page devices. Optional `state`, `limit`, and `offset`. |
 | `trigger_job` | `jobs` | Start one job type from the table below. |
 | `start_move` | `jobs` | Start a stop-first Move. `confirm` must be true. The source stack is left stopped. There is no undo. |
 | `start_discovery` | `jobs` | Start a scan of the saved LAN Discovery ranges. `confirm` must be true. |
+| `scan_discovery_device` | `jobs` | Scan one device inside those ranges. `confirm` must be true. |
 | `set_features` | `edit` | Toggle `backup`, `os_patch`, or `docker`. Omit a field to leave it unchanged. |
+| `rename_discovery_device` | `edit` | Set the operator name. Kind and map role stay. |
+| `set_discovery_device_state` | `edit` | Set `known`, `new`, or `ignored`. |
+| `link_discovery_device` | `edit` | Link a device to a fleet server. |
+| `unlink_discovery_device` | `edit` | Unlink a device. It becomes known. |
+| `purge_discovery_device` | `edit` | Delete one device. `confirm` must be true. A linked device is refused. |
+| `purge_stale_discovery_devices` | `edit` | Delete offline devices. `confirm` must be true. Linked devices stay. |
 | `list_files` | `files` | List a fleet-jail directory. `p` is jail-relative. `""` is the jail root. |
 | `read_file` | `files` | Download one fleet-jail file. Capped around 256 KiB. The result says when it was cut. |
 | `write_file` | `files` | Upload text. `p` is the directory, `name` is the basename. Cap 256 KiB. |
@@ -102,7 +110,7 @@ A token with `read`, `jobs`, `edit`, and `files` has these 19 tools. A missing s
 | `rename_file` | `files` | Rename inside the current directory. `p`, `src`, `dest`. |
 | `delete_file` | `files` | Delete one file or an empty directory. Not recursive. |
 
-Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `start_move`, `start_discovery`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
+Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `start_move`, `start_discovery`, `scan_discovery_device`, `rename_discovery_device`, `set_discovery_device_state`, `link_discovery_device`, `unlink_discovery_device`, `purge_discovery_device`, `purge_stale_discovery_devices`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
 
 ### `trigger_job` types
 
@@ -129,7 +137,7 @@ Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `start_move`, `sta
 | `container_restart` | docker | Same required `service` and `source_filter` as `container_start`. |
 | `container_redeploy` | docker | Same required `service` and `source_filter` as `container_start`. One service, not the whole project. |
 
-Not accepted on `trigger_job`: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), undo (`service_migrate_undo`), and dest-up recover (`service_migrate_dest_recover`). SSH, the console, and token admin are not tools. A Move is `start_move`. A LAN Discovery scan is `read_discovery` and `start_discovery`. Adapter **0.3.1** did not send those three. This package does.
+Not accepted on `trigger_job`: `docker_stack_down`, `docker_stack_remove`, `template_drift_check`, Move (`service_migrate`), undo (`service_migrate_undo`), and dest-up recover (`service_migrate_dest_recover`). SSH, the console, and token admin are not tools. A Move is `start_move`. A LAN Discovery scan is `read_discovery` and `start_discovery`. A device scan is `scan_discovery_device`. Adapter **0.3.1** did not send `start_move`, `read_discovery`, or `start_discovery`. Adapter **0.4.0** did not send the device tools. This package does.
 
 ### Move
 
@@ -139,7 +147,11 @@ Not accepted on `trigger_job`: `docker_stack_down`, `docker_stack_remove`, `temp
 
 `read_discovery` lists saved ranges and the latest scan. Pass `integration_id` for recent scans, or `integration_id` and `run_id` for one scan.
 
-`start_discovery` takes `integration_id` and `confirm: true`. Optional `intensity` is `discovery`, `inventory`, `detailed`, or `deep`. The body is `confirm` and `intensity` only. The scan uses the ranges saved on that integration. The agent does not choose the ranges. Vulnerability scripts stay off. These two tools call `/api/v1/discovery`. A herder without that route returns **404**.
+`start_discovery` takes `integration_id` and `confirm: true`. Optional `intensity` is `discovery`, `inventory`, `detailed`, or `deep`. The body is `confirm` and `intensity` only. The scan uses the ranges saved on that integration. The agent does not choose the ranges. Vulnerability scripts stay off.
+
+`list_discovery_devices` pages devices. `state` is `new`, `known`, `linked`, `ignored`, or `stale`. `rename_discovery_device` sets the operator name and leaves kind and map role alone. `set_discovery_device_state` sets `known`, `new`, or `ignored`. A linked device cannot be marked new. `link_discovery_device` and `unlink_discovery_device` tie a device to a fleet server. `purge_discovery_device` and `purge_stale_discovery_devices` need `confirm: true`. A linked device cannot be purged. Offline purge removes only `stale` rows. There is no undo. `scan_discovery_device` scans one device whose address sits inside the saved ranges. Default intensity is `deep`. Vulnerability scripts stay off.
+
+These tools call `/api/v1/discovery`. A herder without that route returns **404**. Device routes need the v1.11 herder that exposes them.
 
 ## Wiki
 
@@ -147,7 +159,7 @@ Not accepted on `trigger_job`: `docker_stack_down`, `docker_stack_remove`, `temp
 |-------|------|
 | PiHerder v1.10.0 | [Notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md). Package **1.10.0**. Prior tag: [v1.9.0](https://github.com/bjorngluck/piherder/releases/tag/v1.9.0) |
 | PiHerder v1.9.0 | [Notes](https://github.com/bjorngluck/piherder/blob/v1.9.0/docs/RELEASE_v1.9.0.md). Tag [v1.9.0](https://github.com/bjorngluck/piherder/releases/tag/v1.9.0). Prior: [v1.8.1](https://github.com/bjorngluck/piherder/releases/tag/v1.8.1) |
-| Adapter 0.4.0 | [Notes](docs/RELEASE_v0.4.0.md) · [changelog](CHANGELOG.md). Prior package: [0.3.1](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.3.1) |
+| Adapter 0.4.1 | [Notes](docs/RELEASE_v0.4.1.md) · [changelog](CHANGELOG.md). Prior package: [0.4.0](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.4.0) |
 | Install, clients, scopes | [Agents (MCP)](https://piherder-docs.hacknow.info/operations/mcp/) |
 | Token scopes and allowlist | [API tokens](https://piherder-docs.hacknow.info/operations/api-tokens/) |
 | Jobs the token can start | [Jobs](https://piherder-docs.hacknow.info/day-to-day/jobs-audit-notifications/) |
@@ -157,7 +169,7 @@ Do not vendor this tree inside the PiHerder Docker image.
 
 ## Publishing (maintainers)
 
-[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/)** is the current package. Prior package: [0.3.1](https://pypi.org/project/piherder-mcp/0.3.1/). Notes: [docs/RELEASE_v0.4.0.md](docs/RELEASE_v0.4.0.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.10.0** and links to the [v1.10.0 notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md).
+[piherder-mcp 0.1.1](https://pypi.org/project/piherder-mcp/0.1.1/) was the first PyPI release. **[0.4.1](https://pypi.org/project/piherder-mcp/0.4.1/)** is the current package. Prior package: [0.4.0](https://pypi.org/project/piherder-mcp/0.4.0/). Notes: [docs/RELEASE_v0.4.1.md](docs/RELEASE_v0.4.1.md). The adapter badge reads the latest GitHub Release. The PyPI badge reads the latest package. The PiHerder badge is hand-typed **v1.10.0** and links to the [v1.10.0 notes](https://github.com/bjorngluck/piherder/blob/v1.10.0/docs/RELEASE_v1.10.0.md).
 
 Trusted Publisher is already set: GitHub Environment `pypi`, workflow `release.yml`, owner `bjorngluck`, repository `piherder-mcp`. Later versions reuse it. `github-release` and `publish-pypi` still run independently after the build, so a green GitHub Release is not proof the package is on PyPI.
 

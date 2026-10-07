@@ -222,6 +222,79 @@ class PiherderClient:
             ok=(202,),
         )
 
+    def list_discovery_devices(
+        self,
+        integration_id: int,
+        *,
+        state: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        params: dict[str, Any] = {"limit": limit, "offset": offset}
+        if state:
+            params["state"] = state
+        return self._json(
+            "GET",
+            f"/api/v1/discovery/{integration_id}/devices",
+            params=params,
+        )
+
+    def patch_discovery_device(
+        self,
+        integration_id: int,
+        device_id: int,
+        body: dict[str, Any],
+    ) -> dict[str, Any]:
+        return self._json(
+            "PATCH",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}",
+            json=body,
+        )
+
+    def link_discovery_device(
+        self,
+        integration_id: int,
+        device_id: int,
+        server_id: int,
+    ) -> dict[str, Any]:
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}/link",
+            json={"server_id": server_id},
+        )
+
+    def unlink_discovery_device(self, integration_id: int, device_id: int) -> dict[str, Any]:
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}/unlink",
+        )
+
+    def purge_discovery_device(self, integration_id: int, device_id: int) -> dict[str, Any]:
+        return self._json(
+            "DELETE",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}",
+        )
+
+    def purge_stale_discovery_devices(self, integration_id: int) -> dict[str, Any]:
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/devices/purge-stale",
+        )
+
+    def scan_discovery_device(
+        self,
+        integration_id: int,
+        device_id: int,
+        intensity: str,
+    ) -> dict[str, Any]:
+        """Scan one device inside the saved ranges. The body has no targets."""
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}/scans",
+            json={"confirm": True, "intensity": intensity},
+            ok=(202,),
+        )
+
     def list_files(self, server_id: int, p: str = "") -> dict[str, Any]:
         return self._json("GET", f"/api/v1/servers/{server_id}/files", params={"p": p})
 
