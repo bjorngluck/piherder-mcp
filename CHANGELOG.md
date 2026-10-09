@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-09
+
+### Fixed
+
+- `purge_discovery_device` and `purge_stale_discovery_devices` send `confirm=true` on the HTTP request. **0.4.1** checked `confirm` and then omitted it, so a v1.11 herder returned 400.
+
+### Notes
+
+- Tool list is unchanged. `trigger_job` is unchanged.
+- Operator notes: [docs/RELEASE_v0.4.2.md](docs/RELEASE_v0.4.2.md).
+
 ## [0.4.1] - 2026-10-07
 
 ### Added

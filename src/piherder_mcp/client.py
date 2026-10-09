@@ -273,12 +273,14 @@ class PiherderClient:
         return self._json(
             "DELETE",
             f"/api/v1/discovery/{integration_id}/devices/{device_id}",
+            params={"confirm": "true"},
         )
 
     def purge_stale_discovery_devices(self, integration_id: int) -> dict[str, Any]:
         return self._json(
             "POST",
             f"/api/v1/discovery/{integration_id}/devices/purge-stale",
+            params={"confirm": "true"},
         )
 
     def scan_discovery_device(

@@ -7,13 +7,13 @@
     "url": "https://github.com/bjorngluck/piherder-mcp",
     "source": "github"
   },
-  "version": "0.4.1",
+  "version": "0.4.2",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "piherder-mcp",
-      "version": "0.4.1",
+      "version": "0.4.2",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"

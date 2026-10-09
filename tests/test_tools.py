@@ -523,6 +523,11 @@ def test_discovery_device_tools_confirm_and_bodies():
     )
     assert seen[2][0] == "DELETE"
     assert seen[2][1].endswith("/devices/8")
+    assert seen[2][2].get("confirm") == "true"
+    http.purge_stale_discovery_devices(3)
+    assert seen[4][0] == "POST"
+    assert seen[4][1].endswith("/purge-stale")
+    assert seen[4][2].get("confirm") == "true"
     assert seen[3][3] == {"confirm": True, "intensity": "deep"}
     assert "targets" not in seen[3][3]
     http.close()
