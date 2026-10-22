@@ -25,6 +25,7 @@ TOOL_NAMES = (
     "start_discovery",
     "scan_discovery_device",
     "set_features",
+    "prune_docker",
     "rename_discovery_device",
     "set_discovery_device_state",
     "link_discovery_device",
