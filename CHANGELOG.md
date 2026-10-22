@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-10-22
+
+### Added
+
+- `prune_docker` starts a Docker prune and needs the edit scope. `prune_type` is `images`, `containers`, `both`, or `networks`. Volume prune stays on the Docker page.
+- `list_servers` and `get_server` name `effective_backup_schedule`, `next_backup_run`, and `backup_scheduled`. `backup_scheduled` is false only when backups are on, the scheduler is running, and no job is registered. Null means that state is unknown.
+
+### Notes
+
+- A token with `read`, `jobs`, `edit`, and `files` has 28 tools. **0.4.2** had 27.
+- `trigger_job` is unchanged.
+- Operator notes: [docs/RELEASE_v0.4.3.md](docs/RELEASE_v0.4.3.md).
+
 ## [0.4.2] - 2026-10-09
 
 ### Fixed
