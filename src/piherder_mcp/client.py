@@ -182,6 +182,15 @@ class PiherderClient:
     def set_features(self, server_id: int, fields: dict[str, bool]) -> dict[str, Any]:
         return self._json("PATCH", f"/api/v1/servers/{server_id}/features", json=fields)
 
+    def prune_docker(self, server_id: int, prune_type: str = "both") -> dict[str, Any]:
+        """Start a Docker prune. 409 means one is already active. Volumes are refused."""
+        return self._json(
+            "POST",
+            f"/api/v1/servers/{server_id}/docker/prune",
+            json={"prune_type": prune_type or "both"},
+            ok=(202, 409),
+        )
+
     def trigger_job(self, server_id: int, body: dict[str, Any]) -> dict[str, Any]:
         """Return the API body on 202 and on 409 (already active)."""
         return self._json(

@@ -136,6 +136,10 @@ class Recording:
         self.calls.append(("delete_file", server_id, p))
         return {"ok": True}
 
+    def prune_docker(self, server_id, prune_type="both"):
+        self.calls.append(("prune_docker", server_id, prune_type))
+        return {"status": 202, "prune_type": prune_type}
+
 
 def _tools(scopes):
     from mcp import Client
@@ -158,6 +162,12 @@ def test_read_token_has_no_write_tools():
     assert all("__" not in tool.name for tool in listed)
     by_name = {tool.name: tool for tool in listed}
     assert by_name["summary"].annotations.read_only_hint is True
+    for name in ("list_servers", "get_server"):
+        text = by_name[name].description or ""
+        assert "effective_backup_schedule" in text
+        assert "next_backup_run" in text
+        assert "backup_scheduled" in text
+    assert "Null means that state is unknown" in (by_name["get_server"].description or "")
 
 
 def test_scopes_add_write_tools_and_mark_them_destructive():
@@ -169,6 +179,7 @@ def test_scopes_add_write_tools_and_mark_them_destructive():
         "start_discovery",
         "scan_discovery_device",
         "set_features",
+        "prune_docker",
         "rename_discovery_device",
         "set_discovery_device_state",
         "link_discovery_device",
@@ -182,6 +193,7 @@ def test_scopes_add_write_tools_and_mark_them_destructive():
     assert by_name["start_discovery"].annotations.destructive_hint is True
     assert by_name["scan_discovery_device"].annotations.destructive_hint is True
     assert by_name["purge_discovery_device"].annotations.destructive_hint is True
+    assert "Volume prune stays on the Docker page" in (by_name["prune_docker"].description or "")
     assert by_name["read_discovery"].annotations.read_only_hint is True
     assert by_name["list_discovery_devices"].annotations.read_only_hint is True
     assert by_name["delete_file"].annotations.destructive_hint is True
@@ -569,6 +581,55 @@ def test_http_move_and_discovery_bodies():
     assert seen[0][1].endswith("/servers/5/moves")
     assert seen[1][1].endswith("/discovery/3/scans")
     assert all("service_migrate" not in path for _method, path, _body in seen)
+    client.close()
+
+
+def test_prune_docker_refuses_volumes_and_posts_kind():
+    from mcp import Client
+
+    api = Recording()
+    server = build_server(api, {"read", "edit"})
+
+    async def run():
+        async with Client(server) as client:
+            volumes = await client.call_tool(
+                "prune_docker", {"server_id": 4, "prune_type": "volumes"}
+            )
+            images = await client.call_tool(
+                "prune_docker", {"server_id": 4, "prune_type": " Images "}
+            )
+            other = await client.call_tool(
+                "prune_docker", {"server_id": 4, "prune_type": "stacks"}
+            )
+            return volumes, images, other
+
+    volumes, images, other = asyncio.run(run())
+    assert volumes.structured_content["detail"] == "Volume prune stays on the Docker page"
+    assert other.structured_content["detail"] == (
+        "prune_type must be images, containers, both, or networks"
+    )
+    assert images.structured_content["prune_type"] == "images"
+    assert api.calls == [("prune_docker", 4, "images")]
+
+
+def test_http_prune_posts_kind_and_keeps_409():
+    seen = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        body = httpx2.Response(200, content=request.content).json()
+        seen.append((request.method, request.url.path, body))
+        return httpx2.Response(409, json={"already_active": True})
+
+    client = PiherderClient(
+        "https://herder.example",
+        "ph_test",
+        transport=httpx2.MockTransport(handler),
+    )
+    body = client.prune_docker(4, "networks")
+    assert body["already_active"] is True
+    assert seen == [
+        ("POST", "/api/v1/servers/4/docker/prune", {"prune_type": "networks"}),
+    ]
     client.close()
 
 
