@@ -78,14 +78,14 @@ The same operating note is in `skills/piherder/SKILL.md` (Grok), `clients/cursor
 
 ## Tools
 
-A token with `read`, `jobs`, `edit`, and `files` has these 27 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
+A token with `read`, `jobs`, `edit`, and `files` has these 28 tools. A missing scope hides that group. A token without `read` exits on stderr and lists nothing.
 
 | Tool | Scope | What it does |
 |------|--------|----------------|
 | `health` | `read` | Token health, scopes, and allowed features. |
 | `summary` | `read` | Fleet heartbeat from the database. Does not SSH. Call this before a change. |
-| `list_servers` | `read` | Servers. `q` filters. `limit` defaults to 100 and caps at 100. `offset` pages. |
-| `get_server` | `read` | One server, including its feature flags. |
+| `list_servers` | `read` | Servers. `q` filters. `limit` defaults to 100 and caps at 100. `offset` pages. Each server includes `effective_backup_schedule`, `next_backup_run`, and `backup_scheduled`. |
+| `get_server` | `read` | One server, including its feature flags and those three backup fields. `backup_scheduled` is false only when backups are on, the scheduler is running, and no job is registered. Null means that state is unknown. |
 | `inventory` | `read` | Stored Docker inventory. Omit `server_id` for the fleet. Does not SSH. |
 | `services` | `read` | Stored service up/down chips. Does not poll Uptime Kuma or Nginx Proxy Manager. |
 | `list_jobs` | `read` | Jobs. Optional `server_id`, `status_filter`, `job_type`, `active_only`, `limit`, `offset`. |
@@ -97,6 +97,7 @@ A token with `read`, `jobs`, `edit`, and `files` has these 27 tools. A missing s
 | `start_discovery` | `jobs` | Start a scan of the saved LAN Discovery ranges. `confirm` must be true. |
 | `scan_discovery_device` | `jobs` | Scan one device inside those ranges. `confirm` must be true. |
 | `set_features` | `edit` | Toggle `backup`, `os_patch`, or `docker`. Omit a field to leave it unchanged. |
+| `prune_docker` | `edit` | Start a Docker prune job. `prune_type` is `images`, `containers`, `both`, or `networks`. Volume prune stays on the Docker page. |
 | `rename_discovery_device` | `edit` | Set the operator name. Kind and map role stay. |
 | `set_discovery_device_state` | `edit` | Set `known`, `new`, or `ignored`. |
 | `link_discovery_device` | `edit` | Link a device to a fleet server. |
@@ -110,7 +111,7 @@ A token with `read`, `jobs`, `edit`, and `files` has these 27 tools. A missing s
 | `rename_file` | `files` | Rename inside the current directory. `p`, `src`, `dest`. |
 | `delete_file` | `files` | Delete one file or an empty directory. Not recursive. |
 
-Read tools set `readOnlyHint`. `set_features`, `trigger_job`, `start_move`, `start_discovery`, `scan_discovery_device`, `rename_discovery_device`, `set_discovery_device_state`, `link_discovery_device`, `unlink_discovery_device`, `purge_discovery_device`, `purge_stale_discovery_devices`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
+Read tools set `readOnlyHint`. `set_features`, `prune_docker`, `trigger_job`, `start_move`, `start_discovery`, `scan_discovery_device`, `rename_discovery_device`, `set_discovery_device_state`, `link_discovery_device`, `unlink_discovery_device`, `purge_discovery_device`, `purge_stale_discovery_devices`, `write_file`, `mkdir`, `rename_file`, and `delete_file` set `destructiveHint`.
 
 ### `trigger_job` types
 

@@ -64,11 +64,20 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
         return client.summary()
 
     def list_servers(q: str = "", limit: int = 100, offset: int = 0) -> dict[str, Any]:
-        """List servers. limit default 100, max 100."""
+        """List servers. limit default 100, max 100.
+
+        Each server includes effective_backup_schedule, next_backup_run, and
+        backup_scheduled.
+        """
         return client.list_servers(q=q, limit=limit, offset=offset)
 
     def get_server(server_id: int) -> dict[str, Any]:
-        """One server, including feature flags."""
+        """One server, including feature flags.
+
+        Includes effective_backup_schedule, next_backup_run, and backup_scheduled.
+        backup_scheduled is false only when backups are on, the scheduler is
+        running, and no job is registered. Null means that state is unknown.
+        """
         return client.get_server(server_id)
 
     def inventory(server_id: int | None = None) -> dict[str, Any]:
@@ -174,6 +183,26 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 }
             return client.set_features(server_id, fields)
 
+        def prune_docker(server_id: int, prune_type: str = "both") -> dict[str, Any]:
+            """Start a Docker prune job. Needs the edit scope.
+
+            prune_type is images, containers, both, or networks. both is dangling
+            images and exited containers. Volume prune stays on the Docker page.
+            HTTP 202 means accepted. HTTP 409 means a prune is already active.
+            """
+            kind = (prune_type or "both").strip().lower() or "both"
+            if kind == "volumes":
+                return {
+                    "ok": False,
+                    "detail": "Volume prune stays on the Docker page",
+                }
+            if kind not in ("images", "containers", "both", "networks"):
+                return {
+                    "ok": False,
+                    "detail": "prune_type must be images, containers, both, or networks",
+                }
+            return client.prune_docker(server_id, kind)
+
         def rename_discovery_device(
             integration_id: int,
             device_id: int,
@@ -239,6 +268,7 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             return client.purge_stale_discovery_devices(integration_id)
 
         mcp.tool(annotations=_WRITE)(set_features)
+        mcp.tool(annotations=_WRITE)(prune_docker)
         mcp.tool(annotations=_WRITE)(rename_discovery_device)
         mcp.tool(annotations=_WRITE)(set_discovery_device_state)
         mcp.tool(annotations=_WRITE)(link_discovery_device)
