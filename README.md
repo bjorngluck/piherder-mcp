@@ -4,7 +4,7 @@
 
 [![Release](https://img.shields.io/badge/adapter-v0.4.3-blue.svg)](https://github.com/bjorngluck/piherder-mcp/releases/tag/v0.4.3)
 [![PyPI](https://img.shields.io/badge/pypi-v0.4.3-blue.svg)](https://pypi.org/project/piherder-mcp/0.4.3/)
-[![PiHerder](https://img.shields.io/badge/PiHerder-v1.12.1-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.12.1/docs/RELEASE_v1.12.1.md)
+[![PiHerder](https://img.shields.io/badge/PiHerder-v1.13.0-blue.svg)](https://github.com/bjorngluck/piherder/blob/v1.13.0/docs/RELEASE_v1.13.0.md)
 [![MCP](https://img.shields.io/badge/MCP-stdio-orange.svg)](https://github.com/bjorngluck/piherder-mcp)
 [![Install guide](https://img.shields.io/badge/wiki-install%20steps-red.svg)](https://piherder-docs.hacknow.info/operations/mcp/)
 [![Sponsor](https://img.shields.io/badge/Sponsor-%231EAEDB?logo=githubsponsors&logoColor=fff&style=flat)](https://github.com/sponsors/bjorngluck)
