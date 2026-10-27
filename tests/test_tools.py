@@ -15,8 +15,10 @@ READ = {
     "services",
     "list_jobs",
     "get_job",
+    "list_alerts",
     "read_discovery",
     "list_discovery_devices",
+    "fleet_summary",
 }
 FILES = {"list_files", "read_file", "write_file", "mkdir", "rename_file", "delete_file"}
 
@@ -31,6 +33,14 @@ class Recording:
 
     def summary(self):
         return {"hosts": 1}
+
+    def fleet_summary(self, since=""):
+        self.calls.append(("fleet_summary", since))
+        return {"ok": True, "since": since or None}
+
+    def list_alerts(self, limit=100, offset=0):
+        self.calls.append(("list_alerts", limit, offset))
+        return {"alerts": [], "limit": limit, "offset": offset}
 
     def list_servers(self, q="", limit=100, offset=0):
         self.calls.append(("list_servers", q, limit, offset))
@@ -92,6 +102,12 @@ class Recording:
         self.calls.append(("list_discovery_devices", integration_id, state, limit, offset))
         return {"devices": [], "total": 0, "limit": limit, "offset": offset}
 
+    def replace_stale_mac(self, integration_id, device_id, stale_device_id):
+        self.calls.append(
+            ("replace_stale_mac", integration_id, device_id, stale_device_id)
+        )
+        return {"ok": True, "device_id": device_id, "stale_device_id": stale_device_id}
+
     def patch_discovery_device(self, integration_id, device_id, body):
         self.calls.append(("patch_discovery_device", integration_id, device_id, body))
         return {"device": {"id": device_id, **body}}
@@ -140,6 +156,10 @@ class Recording:
         self.calls.append(("prune_docker", server_id, prune_type))
         return {"status": 202, "prune_type": prune_type}
 
+    def prune_build_cache(self, server_id):
+        self.calls.append(("prune_build_cache", server_id))
+        return {"ok": True, "audit_id": 3}
+
 
 def _tools(scopes):
     from mcp import Client
@@ -180,8 +200,10 @@ def test_scopes_add_write_tools_and_mark_them_destructive():
         "scan_discovery_device",
         "set_features",
         "prune_docker",
+        "prune_build_cache",
         "rename_discovery_device",
         "set_discovery_device_state",
+        "replace_stale_mac",
         "link_discovery_device",
         "unlink_discovery_device",
         "purge_discovery_device",
@@ -196,6 +218,10 @@ def test_scopes_add_write_tools_and_mark_them_destructive():
     assert "Volume prune stays on the Docker page" in (by_name["prune_docker"].description or "")
     assert by_name["read_discovery"].annotations.read_only_hint is True
     assert by_name["list_discovery_devices"].annotations.read_only_hint is True
+    assert by_name["fleet_summary"].annotations.read_only_hint is True
+    assert by_name["list_alerts"].annotations.read_only_hint is True
+    assert by_name["prune_build_cache"].annotations.destructive_hint is True
+    assert by_name["replace_stale_mac"].annotations.destructive_hint is True
     assert by_name["delete_file"].annotations.destructive_hint is True
     assert by_name["read_file"].annotations.read_only_hint is True
 
@@ -630,6 +656,67 @@ def test_http_prune_posts_kind_and_keeps_409():
     assert seen == [
         ("POST", "/api/v1/servers/4/docker/prune", {"prune_type": "networks"}),
     ]
+    client.close()
+
+
+def test_new_read_and_edit_tools_call_the_bearer_api():
+    from mcp import Client
+
+    api = Recording()
+    server = build_server(api, {"read", "edit"})
+
+    async def run():
+        async with Client(server) as client:
+            await client.call_tool("fleet_summary", {"since": "2026-10-27T00:00:00Z"})
+            await client.call_tool("list_alerts", {"limit": 5, "offset": 1})
+            await client.call_tool("prune_build_cache", {"server_id": 4})
+            await client.call_tool(
+                "replace_stale_mac",
+                {"integration_id": 2, "device_id": 8, "stale_device_id": 3},
+            )
+
+    asyncio.run(run())
+    assert api.calls == [
+        ("fleet_summary", "2026-10-27T00:00:00Z"),
+        ("list_alerts", 5, 1),
+        ("prune_build_cache", 4),
+        ("replace_stale_mac", 2, 8, 3),
+    ]
+
+
+def test_http_fleet_alerts_build_cache_and_stale_mac():
+    seen = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        body = None
+        if request.content:
+            body = httpx2.Response(200, content=request.content).json()
+        seen.append((request.method, request.url.path, dict(request.url.params), body))
+        return httpx2.Response(200, json={"ok": True})
+
+    client = PiherderClient(
+        "https://herder.example",
+        "ph_test",
+        transport=httpx2.MockTransport(handler),
+    )
+    client.fleet_summary("2026-10-27T00:00:00Z")
+    client.fleet_summary("")
+    client.list_alerts(limit=5, offset=1)
+    client.prune_build_cache(4)
+    client.replace_stale_mac(2, 8, 3)
+    assert seen[0][0:3] == (
+        "GET",
+        "/api/v1/fleet/summary",
+        {"since": "2026-10-27T00:00:00Z"},
+    )
+    assert seen[1][0:3] == ("GET", "/api/v1/fleet/summary", {})
+    assert seen[2][0:3] == ("GET", "/api/v1/alerts", {"limit": "5", "offset": "1"})
+    assert seen[3][0:2] == ("POST", "/api/v1/servers/4/docker/build-cache")
+    assert seen[4][0:2] == (
+        "POST",
+        "/api/v1/discovery/2/devices/8/replace-stale-mac",
+    )
+    assert seen[4][3] == {"stale_device_id": 3}
     client.close()
 
 
