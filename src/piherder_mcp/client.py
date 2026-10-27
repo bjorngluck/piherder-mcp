@@ -134,6 +134,17 @@ class PiherderClient:
     def summary(self) -> dict[str, Any]:
         return self._json("GET", "/api/v1/summary")
 
+    def fleet_summary(self, since: str = "") -> dict[str, Any]:
+        """Counts and states. since is optional ISO-8601. Does not replace summary."""
+        return self._json("GET", "/api/v1/fleet/summary", params={"since": since})
+
+    def list_alerts(self, limit: int = 100, offset: int = 0) -> dict[str, Any]:
+        return self._json(
+            "GET",
+            "/api/v1/alerts",
+            params={"limit": limit, "offset": offset},
+        )
+
     def list_servers(self, q: str = "", limit: int = 100, offset: int = 0) -> dict[str, Any]:
         return self._json(
             "GET",
@@ -190,6 +201,10 @@ class PiherderClient:
             json={"prune_type": prune_type or "both"},
             ok=(202, 409),
         )
+
+    def prune_build_cache(self, server_id: int) -> dict[str, Any]:
+        """Prune the Docker build cache and the buildx cache. One audit row."""
+        return self._json("POST", f"/api/v1/servers/{server_id}/docker/build-cache")
 
     def trigger_job(self, server_id: int, body: dict[str, Any]) -> dict[str, Any]:
         """Return the API body on 202 and on 409 (already active)."""
@@ -258,6 +273,19 @@ class PiherderClient:
             "PATCH",
             f"/api/v1/discovery/{integration_id}/devices/{device_id}",
             json=body,
+        )
+
+    def replace_stale_mac(
+        self,
+        integration_id: int,
+        device_id: int,
+        stale_device_id: int,
+    ) -> dict[str, Any]:
+        """Ignore a stale row and copy its custom fields onto this MAC."""
+        return self._json(
+            "POST",
+            f"/api/v1/discovery/{integration_id}/devices/{device_id}/replace-stale-mac",
+            json={"stale_device_id": stale_device_id},
         )
 
     def link_discovery_device(

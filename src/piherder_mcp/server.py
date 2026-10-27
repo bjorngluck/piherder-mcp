@@ -63,6 +63,14 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
         """Fleet heartbeat from the database. Does not SSH."""
         return client.summary()
 
+    def fleet_summary(since: str = "") -> dict[str, Any]:
+        """Counts and states for hosts, alerts, failed jobs, backups, Drive replication, and pending updates.
+
+        since is optional ISO-8601. Omitted means the current snapshot.
+        Does not replace summary. Does not SSH.
+        """
+        return client.fleet_summary(since)
+
     def list_servers(q: str = "", limit: int = 100, offset: int = 0) -> dict[str, Any]:
         """List servers. limit default 100, max 100.
 
@@ -110,8 +118,13 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
         """One job. detail=true includes a longer log tail."""
         return client.get_job(job_id, detail=detail)
 
+    def list_alerts(limit: int = 100, offset: int = 0) -> dict[str, Any]:
+        """Open notifications. Does not include dismissed or resolved rows."""
+        return client.list_alerts(limit=limit, offset=offset)
+
     mcp.tool(annotations=_READ)(health)
     mcp.tool(annotations=_READ)(summary)
+    mcp.tool(annotations=_READ)(fleet_summary)
     mcp.tool(annotations=_READ)(list_servers)
     mcp.tool(annotations=_READ)(get_server)
     mcp.tool(annotations=_READ)(inventory)
@@ -155,6 +168,7 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
 
     mcp.tool(annotations=_READ)(list_jobs)
     mcp.tool(annotations=_READ)(get_job)
+    mcp.tool(annotations=_READ)(list_alerts)
     mcp.tool(annotations=_READ)(read_discovery)
     mcp.tool(annotations=_READ)(list_discovery_devices)
 
@@ -203,6 +217,13 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 }
             return client.prune_docker(server_id, kind)
 
+        def prune_build_cache(server_id: int) -> dict[str, Any]:
+            """Prune the Docker build cache and the buildx cache on one host.
+
+            Needs the edit scope. One audit row. Not a docker_prune job and not scheduled.
+            """
+            return client.prune_build_cache(server_id)
+
         def rename_discovery_device(
             integration_id: int,
             device_id: int,
@@ -232,6 +253,18 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
                 device_id,
                 {"state": chosen},
             )
+
+        def replace_stale_mac(
+            integration_id: int,
+            device_id: int,
+            stale_device_id: int,
+        ) -> dict[str, Any]:
+            """Ignore a stale LAN Discovery row that shares this device's hostname and IP.
+
+            Copies display name, kind override, and notes onto this MAC.
+            One audit row. Identity stays the MAC.
+            """
+            return client.replace_stale_mac(integration_id, device_id, stale_device_id)
 
         def link_discovery_device(
             integration_id: int,
@@ -269,8 +302,10 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
 
         mcp.tool(annotations=_WRITE)(set_features)
         mcp.tool(annotations=_WRITE)(prune_docker)
+        mcp.tool(annotations=_WRITE)(prune_build_cache)
         mcp.tool(annotations=_WRITE)(rename_discovery_device)
         mcp.tool(annotations=_WRITE)(set_discovery_device_state)
+        mcp.tool(annotations=_WRITE)(replace_stale_mac)
         mcp.tool(annotations=_WRITE)(link_discovery_device)
         mcp.tool(annotations=_WRITE)(unlink_discovery_device)
         mcp.tool(annotations=_WRITE)(purge_discovery_device)

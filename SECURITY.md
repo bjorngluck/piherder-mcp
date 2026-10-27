@@ -5,7 +5,7 @@
 | Version | Support |
 |---------|---------|
 | **0.4.x** | Supported (`uvx piherder-mcp`) |
-| **0.3.x and older** | Upgrade to **0.4.3** |
+| **0.3.x and older** | Upgrade to **0.4.4** |
 
 ## Reporting a vulnerability
 

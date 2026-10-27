@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-10-27
+
+### Added
+
+- `fleet_summary` returns counts and states for hosts, alerts, failed jobs, backups, Drive replication, and pending updates. `since` is optional ISO-8601. It does not replace `summary`.
+- `list_alerts` returns open notifications.
+- `prune_build_cache` clears the Docker build cache and the buildx cache. It needs the edit scope. One audit row. It is not a `docker_prune` job and it has no schedule.
+- `replace_stale_mac` ignores a stale LAN Discovery row that shares the device hostname and IP, and copies its custom fields onto this MAC.
+
+### Notes
+
+- A token with `read`, `jobs`, `edit`, and `files` has 32 tools. **0.4.3** had 28.
+- Volume prune stays on the Docker page.
+- A herder without `GET /api/v1/fleet/summary` returns 404 for `fleet_summary`.
+- Operator notes: [docs/RELEASE_v0.4.4.md](docs/RELEASE_v0.4.4.md).
+
 ## [0.4.3] - 2026-10-22
 
 ### Added
