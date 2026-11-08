@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-11-08
+
+### Changed
+
+- `start_move`, `start_discovery`, `scan_discovery_device`, `purge_discovery_device`, and `purge_stale_discovery_devices` send the caller's `confirm`. They do not fill in true when the caller left it out. The tool still refuses the call unless `confirm` is true.
+- Dependencies are locked in `uv.lock`. CI installs from that lock.
+
+### Notes
+
+- A token with `read`, `jobs`, `edit`, and `files` still has 32 tools. Volume prune stays on the Docker page.
+- Operator notes: [docs/RELEASE_v0.4.5.md](docs/RELEASE_v0.4.5.md).
+
 ## [0.4.4] - 2026-10-27
 
 ### Added

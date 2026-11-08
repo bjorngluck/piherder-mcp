@@ -43,6 +43,11 @@ DISCOVERY_INTENSITIES = (
 )
 
 
+def confirm_query(confirm: bool) -> str:
+    """Query form of the caller's confirm. True stays true. Any other value is false."""
+    return "true" if confirm is True else "false"
+
+
 class PiherderError(Exception):
     def __init__(self, status: int, body: Any):
         self.status = status
@@ -215,15 +220,22 @@ class PiherderClient:
             ok=(202, 409),
         )
 
-    def start_move(self, server_id: int, dest_server_id: int, project: str) -> dict[str, Any]:
-        """Stop-first Move. confirm is always true. 409 means a job is already active."""
+    def start_move(
+        self,
+        server_id: int,
+        dest_server_id: int,
+        project: str,
+        *,
+        confirm: bool,
+    ) -> dict[str, Any]:
+        """Stop-first Move. The body sends the caller's confirm. 409 means a job is already active."""
         return self._json(
             "POST",
             f"/api/v1/servers/{server_id}/moves",
             json={
                 "dest_server_id": dest_server_id,
                 "project": project,
-                "confirm": True,
+                "confirm": confirm,
             },
             ok=(202, 409),
         )
@@ -237,12 +249,18 @@ class PiherderClient:
     def get_discovery_run(self, integration_id: int, run_id: int) -> dict[str, Any]:
         return self._json("GET", f"/api/v1/discovery/{integration_id}/runs/{run_id}")
 
-    def start_discovery(self, integration_id: int, intensity: str) -> dict[str, Any]:
-        """Scan the ranges saved on the integration. The body has no targets."""
+    def start_discovery(
+        self,
+        integration_id: int,
+        intensity: str,
+        *,
+        confirm: bool,
+    ) -> dict[str, Any]:
+        """Scan the ranges saved on the integration. The body sends the caller's confirm."""
         return self._json(
             "POST",
             f"/api/v1/discovery/{integration_id}/scans",
-            json={"confirm": True, "intensity": intensity},
+            json={"confirm": confirm, "intensity": intensity},
             ok=(202,),
         )
 
@@ -306,18 +324,29 @@ class PiherderClient:
             f"/api/v1/discovery/{integration_id}/devices/{device_id}/unlink",
         )
 
-    def purge_discovery_device(self, integration_id: int, device_id: int) -> dict[str, Any]:
+    def purge_discovery_device(
+        self,
+        integration_id: int,
+        device_id: int,
+        *,
+        confirm: bool,
+    ) -> dict[str, Any]:
         return self._json(
             "DELETE",
             f"/api/v1/discovery/{integration_id}/devices/{device_id}",
-            params={"confirm": "true"},
+            params={"confirm": confirm_query(confirm)},
         )
 
-    def purge_stale_discovery_devices(self, integration_id: int) -> dict[str, Any]:
+    def purge_stale_discovery_devices(
+        self,
+        integration_id: int,
+        *,
+        confirm: bool,
+    ) -> dict[str, Any]:
         return self._json(
             "POST",
             f"/api/v1/discovery/{integration_id}/devices/purge-stale",
-            params={"confirm": "true"},
+            params={"confirm": confirm_query(confirm)},
         )
 
     def scan_discovery_device(
@@ -325,12 +354,14 @@ class PiherderClient:
         integration_id: int,
         device_id: int,
         intensity: str,
+        *,
+        confirm: bool,
     ) -> dict[str, Any]:
-        """Scan one device inside the saved ranges. The body has no targets."""
+        """Scan one device inside the saved ranges. The body sends the caller's confirm."""
         return self._json(
             "POST",
             f"/api/v1/discovery/{integration_id}/devices/{device_id}/scans",
-            json={"confirm": True, "intensity": intensity},
+            json={"confirm": confirm, "intensity": intensity},
             ok=(202,),
         )
 
