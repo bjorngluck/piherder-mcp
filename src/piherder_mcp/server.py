@@ -289,7 +289,9 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             """
             if confirm is not True:
                 raise ValueError("confirm must be true")
-            return client.purge_discovery_device(integration_id, device_id)
+            return client.purge_discovery_device(
+                integration_id, device_id, confirm=confirm
+            )
 
         def purge_stale_discovery_devices(integration_id: int, confirm: bool) -> dict[str, Any]:
             """Permanently delete offline devices. confirm must be true. Linked devices stay.
@@ -298,7 +300,9 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             """
             if confirm is not True:
                 raise ValueError("confirm must be true")
-            return client.purge_stale_discovery_devices(integration_id)
+            return client.purge_stale_discovery_devices(
+                integration_id, confirm=confirm
+            )
 
         mcp.tool(annotations=_WRITE)(set_features)
         mcp.tool(annotations=_WRITE)(prune_docker)
@@ -378,7 +382,9 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             name = (project or "").strip()
             if not name:
                 raise ValueError("project is required")
-            return client.start_move(server_id, dest_server_id, name)
+            return client.start_move(
+                server_id, dest_server_id, name, confirm=confirm
+            )
 
         def start_discovery(
             integration_id: int,
@@ -396,7 +402,7 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             if chosen not in DISCOVERY_INTENSITIES:
                 allowed = ", ".join(DISCOVERY_INTENSITIES)
                 raise ValueError(f"intensity must be one of {allowed}")
-            return client.start_discovery(integration_id, chosen)
+            return client.start_discovery(integration_id, chosen, confirm=confirm)
 
         def scan_discovery_device(
             integration_id: int,
@@ -416,7 +422,9 @@ def build_server(client: PiherderClient, scopes: set[str]) -> MCPServer:
             if chosen not in DISCOVERY_INTENSITIES:
                 allowed = ", ".join(DISCOVERY_INTENSITIES)
                 raise ValueError(f"intensity must be one of {allowed}")
-            return client.scan_discovery_device(integration_id, device_id, chosen)
+            return client.scan_discovery_device(
+                integration_id, device_id, chosen, confirm=confirm
+            )
 
         mcp.tool(annotations=_WRITE)(trigger_job)
         mcp.tool(annotations=_WRITE)(start_move)

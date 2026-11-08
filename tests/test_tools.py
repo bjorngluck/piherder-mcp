@@ -74,8 +74,8 @@ class Recording:
             return {"status": 409, "job": {"id": 9, "status": "running"}}
         return {"status": 202, "job_id": 3, "job_type": body["job_type"]}
 
-    def start_move(self, server_id, dest_server_id, project):
-        self.calls.append(("start_move", server_id, dest_server_id, project))
+    def start_move(self, server_id, dest_server_id, project, *, confirm):
+        self.calls.append(("start_move", server_id, dest_server_id, project, confirm))
         return {"status": 202, "job_id": 8, "leftover": "stopped"}
 
     def list_discovery(self):
@@ -90,8 +90,8 @@ class Recording:
         self.calls.append(("get_discovery_run", integration_id, run_id))
         return {"run": {"id": run_id, "hosts_up": 2}}
 
-    def start_discovery(self, integration_id, intensity):
-        self.calls.append(("start_discovery", integration_id, intensity))
+    def start_discovery(self, integration_id, intensity, *, confirm):
+        self.calls.append(("start_discovery", integration_id, intensity, confirm))
         return {
             "status": 202,
             "intensity": intensity,
@@ -120,16 +120,18 @@ class Recording:
         self.calls.append(("unlink_discovery_device", integration_id, device_id))
         return {"device": {"id": device_id, "state": "known"}}
 
-    def purge_discovery_device(self, integration_id, device_id):
-        self.calls.append(("purge_discovery_device", integration_id, device_id))
+    def purge_discovery_device(self, integration_id, device_id, *, confirm):
+        self.calls.append(("purge_discovery_device", integration_id, device_id, confirm))
         return {"device_ids": [device_id], "purged": 1}
 
-    def purge_stale_discovery_devices(self, integration_id):
-        self.calls.append(("purge_stale_discovery_devices", integration_id))
+    def purge_stale_discovery_devices(self, integration_id, *, confirm):
+        self.calls.append(("purge_stale_discovery_devices", integration_id, confirm))
         return {"device_ids": [3], "purged": 1}
 
-    def scan_discovery_device(self, integration_id, device_id, intensity):
-        self.calls.append(("scan_discovery_device", integration_id, device_id, intensity))
+    def scan_discovery_device(self, integration_id, device_id, intensity, *, confirm):
+        self.calls.append(
+            ("scan_discovery_device", integration_id, device_id, intensity, confirm)
+        )
         return {"status": 202, "targets": ["192.168.86.11"], "intensity": intensity}
 
     def list_files(self, server_id, p=""):
@@ -469,8 +471,8 @@ def test_start_move_and_discovery_use_saved_routes():
     assert moved.structured_content["leftover"] == "stopped"
     assert scan.structured_content["targets"] == ["192.168.86.0/24"]
     assert read.structured_content["run"]["hosts_up"] == 2
-    assert ("start_move", 1, 2, "web") in api.calls
-    assert ("start_discovery", 4, "discovery") in api.calls
+    assert ("start_move", 1, 2, "web", True) in api.calls
+    assert ("start_discovery", 4, "discovery", True) in api.calls
     assert ("get_discovery_run", 4, 9) in api.calls
     assert all(call[0] != "trigger_job" or call[2].get("job_type") != "service_migrate" for call in api.calls)
     posted_moves = [call for call in api.calls if call[0] == "start_move"]
@@ -518,8 +520,8 @@ def test_discovery_device_tools_confirm_and_bodies():
     assert purged.structured_content["device_ids"] == [8]
     assert renamed.structured_content["device"]["display_name"] == "Front camera"
     assert scanned.structured_content["intensity"] == "deep"
-    assert ("purge_discovery_device", 3, 8) in api.calls
-    assert ("scan_discovery_device", 3, 8, "deep") in api.calls
+    assert ("purge_discovery_device", 3, 8, True) in api.calls
+    assert ("scan_discovery_device", 3, 8, "deep", True) in api.calls
     assert all(call[0] != "purge_stale_discovery_devices" for call in api.calls)
 
     seen = []
@@ -548,8 +550,8 @@ def test_discovery_device_tools_confirm_and_bodies():
     )
     http.list_discovery_devices(3, state="stale", limit=10, offset=0)
     http.patch_discovery_device(3, 8, {"display_name": "Front camera"})
-    http.purge_discovery_device(3, 8)
-    http.scan_discovery_device(3, 8, "deep")
+    http.purge_discovery_device(3, 8, confirm=True)
+    http.scan_discovery_device(3, 8, "deep", confirm=True)
     assert seen[0][0] == "GET"
     assert seen[0][1].endswith("/discovery/3/devices")
     assert seen[0][2]["state"] == "stale"
@@ -562,12 +564,18 @@ def test_discovery_device_tools_confirm_and_bodies():
     assert seen[2][0] == "DELETE"
     assert seen[2][1].endswith("/devices/8")
     assert seen[2][2].get("confirm") == "true"
-    http.purge_stale_discovery_devices(3)
+    http.purge_stale_discovery_devices(3, confirm=True)
     assert seen[4][0] == "POST"
     assert seen[4][1].endswith("/purge-stale")
     assert seen[4][2].get("confirm") == "true"
     assert seen[3][3] == {"confirm": True, "intensity": "deep"}
     assert "targets" not in seen[3][3]
+    http.purge_discovery_device(3, 8, confirm=False)
+    http.scan_discovery_device(3, 8, "deep", confirm=False)
+    assert seen[5][2].get("confirm") == "false"
+    assert seen[6][3] == {"confirm": False, "intensity": "deep"}
+    with pytest.raises(TypeError):
+        http.purge_discovery_device(3, 8)
     http.close()
 
 
@@ -594,9 +602,9 @@ def test_http_move_and_discovery_bodies():
         "ph_test",
         transport=httpx2.MockTransport(handler),
     )
-    moved = client.start_move(5, 6, "web")
+    moved = client.start_move(5, 6, "web", confirm=True)
     assert moved["leftover"] == "stopped"
-    scanned = client.start_discovery(3, "inventory")
+    scanned = client.start_discovery(3, "inventory", confirm=True)
     assert scanned["targets"] == ["192.168.86.0/24"]
     client.get_discovery_run(3, 9)
     client.list_discovery()
@@ -607,6 +615,11 @@ def test_http_move_and_discovery_bodies():
     assert seen[0][1].endswith("/servers/5/moves")
     assert seen[1][1].endswith("/discovery/3/scans")
     assert all("service_migrate" not in path for _method, path, _body in seen)
+    refused = client.start_move(5, 6, "web", confirm=False)
+    assert refused["leftover"] == "stopped"
+    assert seen[-1][2]["confirm"] is False
+    with pytest.raises(TypeError):
+        client.start_discovery(3, "inventory")
     client.close()
 
 
